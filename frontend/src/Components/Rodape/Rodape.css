@@ -1,0 +1,73 @@
+.rodape-site {
+    margin-top: 72px;
+    background-color: var(--tinta);
+    color: #C9CBE0;
+    border-top: 6px solid var(--amarelo);
+}
+
+.rodape-site .container {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1.2fr;
+    gap: 40px;
+    padding-top: 48px;
+    padding-bottom: 48px;
+}
+
+.rodape-sobre {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.rodape-sobre p {
+    max-width: 340px;
+}
+
+.rodape-estados {
+    display: flex;
+    gap: 16px;
+    font-weight: 700;
+    color: var(--branco);
+}
+
+.rodape-estados span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rodape-estados .cor-estado {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--branco);
+}
+
+.rodape-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 15px;
+}
+
+.rodape-links .rotulo {
+    color: var(--amarelo);
+    margin-bottom: 4px;
+}
+
+.rodape-links a {
+    color: var(--branco);
+    text-decoration: none;
+    font-weight: 600;
+    align-self: flex-start;
+}
+
+.rodape-links a:hover {
+    color: var(--amarelo);
+}
+
+@media (max-width: 760px) {
+    .rodape-site .container {
+        grid-template-columns: 1fr;
+        gap: 28px;
+    }
+}

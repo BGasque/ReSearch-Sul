@@ -1,0 +1,22 @@
+# Bibliotecas baixadas (o "npm install" baixa de novo)
+node_modules/
+
+# Senhas e configurações locais: NUNCA enviar para o GitHub
+.env
+.env.*
+!.env.example
+
+# Arquivos gerados
+dist/
+frontend/dist/
+backend/generated/
+
+# Ferramentas do editor e do assistente
+.claude/
+.vscode/
+.idea/
+
+# Lixo do sistema
+.DS_Store
+Thumbs.db
+*.log

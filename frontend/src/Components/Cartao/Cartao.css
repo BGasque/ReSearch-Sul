@@ -1,0 +1,226 @@
+/* Cartão de evento ou publicação (catálogo e recomendados) */
+.cartao {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+
+/* Ao passar o mouse, o cartão "levanta" */
+.cartao:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 9px 9px 0 var(--tinta);
+}
+
+/* Faixa de cima, com a cor do tipo */
+.cartao-faixa {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 18px;
+    border-bottom: 2px solid var(--tinta);
+    background-color: #E9EDFF;
+}
+
+.cartao.publicacao .cartao-faixa {
+    background-color: #FFE6DF;
+}
+
+.cartao.encerrado .cartao-faixa {
+    background-color: #EFEDE7;
+}
+
+.cartao-faixa .chip.fechado {
+    background-color: var(--linha);
+    color: var(--cinza);
+    border-color: var(--cinza);
+}
+
+/* Contador de prazo curto (até 15 dias) */
+.cartao-faixa .chip.urgente {
+    margin-left: auto;
+    background-color: var(--amarelo);
+}
+
+.cartao-corpo {
+    padding: 18px 20px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.cartao h2 {
+    font-size: 23px;
+}
+
+.cartao h2 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.cartao h2 a:hover {
+    background-image: linear-gradient(transparent 60%, var(--amarelo) 60%);
+}
+
+.cartao.encerrado h2,
+.cartao.encerrado .descricao {
+    color: var(--cinza);
+}
+
+/* Descrição cortada em 3 linhas para os cartões ficarem do mesmo tamanho */
+.cartao .descricao {
+    color: var(--cinza);
+    font-size: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cartao .informacoes {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.cartao .informacoes li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cartao .informacoes .icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: var(--azul);
+}
+
+.cartao.publicacao .informacoes .icon {
+    color: var(--coral);
+}
+
+/* Prazo em amarelo, com o contador de dias */
+.cartao .prazo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--amarelo);
+    border: 2px solid var(--tinta);
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+.cartao .prazo .icon {
+    color: var(--tinta);
+    width: 20px;
+    flex-shrink: 0;
+}
+
+.cartao .prazo span {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
+.cartao .prazo small {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Áreas do conhecimento */
+.cartao .areas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cartao .areas span {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border: 1.5px solid var(--tinta);
+    background-color: var(--papel);
+}
+
+/* Por que foi recomendado */
+.cartao .motivos {
+    list-style: none;
+    border: 2px dashed var(--azul);
+    background-color: #F2F4FF;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cartao .motivos li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cartao .motivos .icon {
+    width: 15px;
+    color: var(--azul);
+}
+
+/* Rodapé do cartão */
+.cartao .link-detalhes {
+    margin-top: 14px;
+    padding: 12px 20px;
+    border-top: 2px solid var(--tinta);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--tinta);
+    text-decoration: none;
+    font-weight: 700;
+    transition: background-color 0.15s;
+}
+
+.cartao .link-detalhes:hover {
+    background-color: var(--tinta);
+    color: var(--branco);
+}
+
+.cartao .link-detalhes .icon {
+    width: 18px;
+    color: currentColor;
+    transition: transform 0.15s;
+}
+
+.cartao .link-detalhes:hover .icon {
+    transform: translateX(4px);
+}
+
+/* Tags do conteúdo */
+.cartao .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul);
+}
+
+.cartao.publicacao .tags {
+    color: #C2412A;
+}
+
+/* Tag que combina com a busca ou com o perfil */
+.cartao .tags .destaque {
+    background-color: var(--amarelo);
+    color: var(--tinta);
+    padding: 0 4px;
+}
+
+.cartao .tags .mais {
+    color: var(--cinza);
+}
