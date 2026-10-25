@@ -1,0 +1,50 @@
+/* Tags separadas por grupo (Eixo, Nível de ensino, Formato, Tema) */
+.seletor-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.grupo-tags {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.grupo-tags .rotulo {
+    color: var(--cinza);
+}
+
+.lista-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-opcao {
+    padding: 6px 12px;
+    background-color: var(--branco);
+    border: 2px solid var(--tinta);
+    box-shadow: 2px 2px 0 var(--tinta);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+}
+
+.tag-opcao:hover {
+    background-color: #F2F4FF;
+}
+
+/* Tag marcada: sólida e "afundada" */
+.tag-opcao.marcada {
+    background-color: var(--tinta);
+    color: var(--amarelo);
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+
+.tag-opcao:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}

@@ -1,0 +1,386 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* ---------- Identidade visual da ReSearch Sul ----------
+   Tema "mural de congresso / caderno de pesquisa":
+   fundo pontilhado, cartões com sombra de recorte, marca-texto nos títulos
+   e cores vivas. Cantos sempre retos.
+   Fontes: Bricolage Grotesque (títulos) e Plus Jakarta Sans (textos). */
+
+:root {
+  --azul: #2B4EFF;
+  --azul-escuro: #1A2FA8;
+  --tinta: #14152B;
+  --amarelo: #FFCE3A;
+  --coral: #FF6A4D;
+  --verde: #1FAF7A;
+  --papel: #FBF8F1;
+  --branco: #FFFFFF;
+  --linha: #E3DED2;
+  --cinza: #5B5E73;
+  --vermelho: #D7263D;
+
+  /* Cada estado tem uma cor */
+  --cor-PR: var(--verde);
+  --cor-SC: var(--coral);
+  --cor-RS: var(--amarelo);
+
+  --sombra: 5px 5px 0 var(--tinta);
+  --sombra-pequena: 3px 3px 0 var(--tinta);
+
+  --fonte-titulo: 'Bricolage Grotesque', 'Arial Black', sans-serif;
+  --fonte-texto: 'Plus Jakarta Sans', Arial, sans-serif;
+
+  /* Nomes antigos, mantidos para nada quebrar */
+  --accent: var(--azul);
+  --bg: var(--branco);
+  --text: var(--tinta);
+  --secondary-text: var(--cinza);
+  --border: var(--linha);
+  --stroke: var(--linha);
+  --stroke2: var(--linha);
+  --background-color: var(--papel);
+}
+
+html {
+  height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: var(--fonte-texto);
+}
+
+body {
+  background-color: var(--papel);
+  /* Fundo pontilhado, como folha de caderno de laboratório */
+  background-image: radial-gradient(#D9D3C3 1.2px, transparent 1.2px);
+  background-size: 22px 22px;
+  color: var(--tinta);
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fonte-titulo);
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+/* Links e destaques dentro de títulos usam a mesma fonte do título */
+h1 *,
+h2 *,
+h3 * {
+  font-family: inherit;
+  font-weight: inherit;
+}
+
+strong {
+  font-weight: 700;
+}
+
+/* Sem cantos arredondados em nenhum lugar */
+button,
+input,
+select,
+textarea {
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--azul);
+  font-weight: 600;
+}
+
+.icon {
+  color: var(--cinza);
+  stroke-width: 2;
+}
+
+/* Contorno visível para quem navega pelo teclado */
+:focus-visible {
+  outline: 3px solid var(--azul);
+  outline-offset: 3px;
+}
+
+/* ---------- Peças reaproveitadas em várias páginas ---------- */
+
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* Rótulo pequeno em cima dos títulos, com um quadradinho de ícone */
+.sobrancelha {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--azul);
+}
+
+.sobrancelha .icone-quadrado {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--azul);
+  color: var(--branco);
+  box-shadow: 2px 2px 0 var(--tinta);
+}
+
+.sobrancelha .icone-quadrado .icon {
+  color: var(--branco);
+  width: 16px;
+  height: 16px;
+}
+
+/* Rótulo pequeno em maiúsculas (ex.: "EVENTO", "PRAZO") */
+.rotulo {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Marca-texto nos títulos */
+.marca-texto {
+  background-image: linear-gradient(transparent 58%, var(--amarelo) 58%, var(--amarelo) 92%, transparent 92%);
+  padding: 0 4px;
+}
+
+.marca-texto.coral {
+  background-image: linear-gradient(transparent 58%, var(--coral) 58%, var(--coral) 92%, transparent 92%);
+}
+
+.marca-texto.verde {
+  background-image: linear-gradient(transparent 58%, var(--verde) 58%, var(--verde) 92%, transparent 92%);
+}
+
+/* Botões com sombra de recorte: "afundam" ao clicar */
+.botao,
+.botao-azul,
+.botao-amarelo,
+.botao-contorno {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border: 2px solid var(--tinta);
+  background-color: var(--tinta);
+  color: var(--branco);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: var(--sombra-pequena);
+  transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+}
+
+.botao:hover,
+.botao-azul:hover,
+.botao-amarelo:hover,
+.botao-contorno:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--tinta);
+}
+
+.botao:active,
+.botao-azul:active,
+.botao-amarelo:active,
+.botao-contorno:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--tinta);
+}
+
+.botao-azul {
+  background-color: var(--azul);
+}
+
+.botao-amarelo {
+  background-color: var(--amarelo);
+  color: var(--tinta);
+}
+
+.botao-contorno {
+  background-color: var(--branco);
+  color: var(--tinta);
+}
+
+.botao .icon,
+.botao-azul .icon,
+.botao-amarelo .icon,
+.botao-contorno .icon {
+  color: currentColor;
+  width: 18px;
+  height: 18px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Campos de texto e listas de escolha */
+.campo {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--tinta);
+  background-color: var(--branco);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.campo:focus {
+  outline: none;
+  box-shadow: var(--sombra-pequena);
+  border-color: var(--azul);
+}
+
+/* Caixa base: branca, borda escura e sombra de recorte */
+.caixa {
+  background-color: var(--branco);
+  border: 2px solid var(--tinta);
+  box-shadow: var(--sombra);
+}
+
+/* Etiquetas pequenas (tipo, estado, área) */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border: 2px solid var(--tinta);
+  background-color: var(--branco);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip.evento {
+  background-color: var(--azul);
+  color: var(--branco);
+}
+
+.chip.publicacao {
+  background-color: var(--coral);
+  color: var(--tinta);
+}
+
+/* Estado: quadradinho com a cor do estado */
+.chip .cor-estado {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--tinta);
+}
+
+.cor-estado.PR { background-color: var(--cor-PR); }
+.cor-estado.SC { background-color: var(--cor-SC); }
+.cor-estado.RS { background-color: var(--cor-RS); }
+
+/* Faixa do topo das páginas */
+.faixa-topo {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--azul);
+  color: var(--branco);
+  border-bottom: 3px solid var(--tinta);
+  /* pontinhos claros por cima do azul */
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1.4px, transparent 1.4px);
+  background-size: 22px 22px;
+}
+
+.faixa-topo .container {
+  position: relative;
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+
+.faixa-topo .sobrancelha {
+  color: var(--amarelo);
+}
+
+.faixa-topo .sobrancelha .icone-quadrado {
+  background-color: var(--amarelo);
+}
+
+.faixa-topo .sobrancelha .icone-quadrado .icon {
+  color: var(--tinta);
+}
+
+.faixa-topo h1 {
+  font-size: 56px;
+  max-width: 760px;
+  margin: 16px 0;
+}
+
+.faixa-topo h1 .marca-texto {
+  color: var(--tinta);
+}
+
+.faixa-topo p {
+  font-size: 18px;
+  max-width: 600px;
+  color: #E4E8FF;
+}
+
+/* Mensagens de sucesso e erro */
+.mensagem {
+  border: 2px solid var(--tinta);
+  border-left: 8px solid var(--verde);
+  background-color: #E6F7F0;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.mensagem.erro {
+  border-left-color: var(--vermelho);
+  background-color: #FDE8EA;
+}
+
+/* Caixa de aviso (lista vazia, carregando...) */
+.aviso {
+  background-color: var(--branco);
+  border: 2px dashed var(--tinta);
+  padding: 24px 28px;
+  font-weight: 500;
+  color: var(--cinza);
+}
+
+@media (max-width: 760px) {
+  .faixa-topo .container {
+    padding-top: 36px;
+    padding-bottom: 36px;
+  }
+
+  .faixa-topo h1 {
+    font-size: 38px;
+  }
+
+  .faixa-topo p {
+    font-size: 16px;
+  }
+}
+
+/* Quem prefere menos movimento não vê as animações */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

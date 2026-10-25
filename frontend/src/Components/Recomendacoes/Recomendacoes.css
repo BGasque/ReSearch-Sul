@@ -1,0 +1,60 @@
+/* Aviso quando ainda não há interesses ou nada combina */
+.aviso-interesses {
+    position: relative;
+    background-color: var(--amarelo);
+    padding: 28px 32px 28px 104px;
+    margin-bottom: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.aviso-interesses .aviso-icone {
+    position: absolute;
+    left: 28px;
+    top: 28px;
+    width: 52px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--branco);
+    border: 2px solid var(--tinta);
+    transform: rotate(-6deg);
+}
+
+.aviso-interesses .aviso-icone .icon {
+    color: var(--coral);
+    width: 28px;
+    height: 28px;
+}
+
+.aviso-interesses p:nth-of-type(1) {
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: 26px;
+    line-height: 1.2;
+}
+
+.aviso-interesses .subtitulo {
+    font-weight: 600;
+}
+
+.aviso-interesses a:not(.botao-azul) {
+    color: var(--tinta);
+}
+
+.mainHome .quantidade a {
+    color: var(--azul);
+}
+
+@media (max-width: 600px) {
+    .aviso-interesses {
+        padding: 24px 20px;
+    }
+
+    .aviso-interesses .aviso-icone {
+        position: static;
+    }
+}

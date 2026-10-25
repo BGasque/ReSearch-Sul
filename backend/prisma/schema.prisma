@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// ---------- Listas de opções fixas ----------
+
+// Tipo de conta: define o que cada pessoa pode fazer no site
+enum TipoConta {
+  PESSOA // estudante ou pesquisador
+  INSTITUICAO // instituição que cadastra eventos e publicações
+  ADMIN // administrador, que aprova os conteúdos
+}
+
+enum TipoConteudo {
+  EVENTO
+  PUBLICACAO
+}
+
+// Estados da Região Sul
+enum Estado {
+  PR
+  SC
+  RS
+}
+
+// Só os conteúdos APROVADO aparecem para o público
+enum Situacao {
+  PENDENTE // esperando o administrador avaliar
+  APROVADO
+  RECUSADO
+  ARQUIVADO // retirado do site pela instituição
+}
+
+// ---------- Tabelas ----------
+
+// 1. Usuários: pessoas, instituições e administradores
+model Usuario {
+  id       Int       @id @default(autoincrement())
+  nome     String
+  email    String    @unique
+  senha    String // guardada criptografada
+  tipo     TipoConta @default(PESSOA)
+  lattes   String? // link público do Currículo Lattes (opcional)
+  lattesId String? // número de 16 dígitos do currículo
+
+  // Dados importados do XML do Lattes (nome, áreas, artigos, trabalhos em eventos)
+  lattesDados       Json?
+  lattesImportadoEm DateTime?
+  criadoEm          DateTime  @default(now())
+
+  conteudos        Conteudo[] // conteúdos cadastrados (se for instituição)
+  interesses       Interesse[]
+  estadosInteresse InteresseEstado[]
+  tagsInteresse    InteresseTag[]
+}
+
+// 2. Áreas do conhecimento (ex.: Computação, Saúde)
+model Area {
+  id   Int    @id @default(autoincrement())
+  nome String @unique
+
+  conteudos  ConteudoArea[]
+  interesses Interesse[]
+}
+
+// 3. Conteúdos: eventos e publicações
+model Conteudo {
+  id            Int          @id @default(autoincrement())
+  tipo          TipoConteudo
+  titulo        String
+  descricao     String       @db.Text
+  estado        Estado
+  local         String? // cidade ou "Online" (eventos)
+  autoria       String? // autores ou revista (publicações)
+  dataInicio    DateTime? // início do evento
+  dataFim       DateTime? // fim do evento
+  prazo         DateTime? // prazo de inscrição ou de envio de artigos
+  linkOficial   String       @db.VarChar(500)
+  situacao      Situacao     @default(PENDENTE)
+  instituicaoId Int
+  publicadoEm   DateTime? // quando foi aprovado pela primeira vez (só assim um arquivado vira histórico público)
+  motivoRecusa  String?      @db.Text // explicação do administrador quando recusa
+  moderadoEm    DateTime? // última vez que o administrador aprovou ou recusou
+  criadoEm      DateTime     @default(now())
+  atualizadoEm  DateTime     @updatedAt
+
+  instituicao Usuario        @relation(fields: [instituicaoId], references: [id])
+  areas       ConteudoArea[]
+  tags        ConteudoTag[]
+
+  @@index([instituicaoId])
+}
+
+// 4. Áreas de cada conteúdo (N para N: um conteúdo pode ter várias áreas)
+model ConteudoArea {
+  conteudoId Int
+  areaId     Int
+
+  conteudo Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+  area     Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@id([conteudoId, areaId])
+  @@index([areaId])
+}
+
+// 5. Interesses: quais áreas cada usuário escolheu seguir
+model Interesse {
+  usuarioId Int
+  areaId    Int
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  area    Area    @relation(fields: [areaId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, areaId])
+  @@index([areaId])
+}
+
+// 6. Estados de interesse: de quais estados o usuário quer ver conteúdos
+model InteresseEstado {
+  usuarioId Int
+  estado    Estado
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, estado])
+}
+
+// 7. Tags: assuntos mais específicos (ex.: Extensão, Robótica, Feira de ciências), organizados em grupos
+model Tag {
+  id    Int     @id @default(autoincrement())
+  nome  String  @unique
+  grupo String // ex.: "Eixo", "Nível de ensino", "Formato", "Tema"
+  ativa Boolean @default(true) // tag desativada some das escolhas, mas não apaga os vínculos
+
+  conteudos  ConteudoTag[]
+  interesses InteresseTag[]
+}
+
+// 8. Tags de cada conteúdo (N para N)
+model ConteudoTag {
+  conteudoId Int
+  tagId      Int
+
+  conteudo Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([conteudoId, tagId])
+  @@index([tagId])
+}
+
+// 9. Tags preferidas de cada usuário (N para N), usadas nas recomendações
+model InteresseTag {
+  usuarioId Int
+  tagId     Int
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, tagId])
+  @@index([tagId])
+}

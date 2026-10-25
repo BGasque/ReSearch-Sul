@@ -1,0 +1,59 @@
+.marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--tinta);
+}
+
+.marca-simbolo {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--azul);
+    border: 2px solid var(--tinta);
+    box-shadow: 3px 3px 0 var(--amarelo);
+    transition: transform 0.2s;
+}
+
+.marca-simbolo .icon {
+    color: var(--branco);
+    width: 22px;
+    height: 22px;
+}
+
+.marca:hover .marca-simbolo {
+    transform: rotate(-8deg);
+}
+
+.marca-nome {
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    font-size: 24px;
+    letter-spacing: -0.03em;
+}
+
+.marca-nome span {
+    color: var(--azul);
+    margin-left: 2px;
+}
+
+/* Versão para fundo azul */
+.marca.clara {
+    color: var(--branco);
+}
+
+.marca.clara .marca-simbolo {
+    background-color: var(--amarelo);
+    box-shadow: 3px 3px 0 var(--tinta);
+}
+
+.marca.clara .marca-simbolo .icon {
+    color: var(--tinta);
+}
+
+.marca.clara .marca-nome span {
+    color: var(--amarelo);
+}
