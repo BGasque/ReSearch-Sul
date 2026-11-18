@@ -42,6 +42,26 @@ function listaDeIds(valor) {
     return [...new Set(valor.split(',').map(Number))];
 }
 
+// Ids dos conteúdos que têm a palavra buscada, sem ligar para maiúsculas nem acentos
+// ("extensao" acha "Extensão"). unaccent() é um recurso do PostgreSQL que tira os acentos.
+async function idsDaBusca(busca) {
+    // % e _ têm significado especial no ILIKE; a barra faz eles valerem como letra comum
+    const padrao = `%${busca.replace(/[\\%_]/g, '\\$&')}%`;
+    const linhas = await prisma.$queryRaw`
+        SELECT DISTINCT c.id
+        FROM "Conteudo" c
+        JOIN "Usuario" u ON u.id = c."instituicaoId"
+        LEFT JOIN "ConteudoTag" ct ON ct."conteudoId" = c.id
+        LEFT JOIN "Tag" t ON t.id = ct."tagId"
+        WHERE unaccent(c.titulo) ILIKE unaccent(${padrao})
+           OR unaccent(c.descricao) ILIKE unaccent(${padrao})
+           OR unaccent(coalesce(c.autoria, '')) ILIKE unaccent(${padrao})
+           OR unaccent(coalesce(c.local, '')) ILIKE unaccent(${padrao})
+           OR unaccent(u.nome) ILIKE unaccent(${padrao})
+           OR unaccent(coalesce(t.nome, '')) ILIKE unaccent(${padrao})`;
+    return linhas.map((linha) => linha.id);
+}
+
 function controller() {
     return {
         get prisma() {
@@ -126,14 +146,7 @@ function controller() {
                 // Busca pela palavra no nome do evento ou publicação, na descrição, na autoria,
                 // no local, no nome da instituição ou no nome de uma tag
                 if (busca) {
-                    filtros.OR = [
-                        { titulo: { contains: busca, mode: "insensitive" } },
-                        { descricao: { contains: busca, mode: "insensitive" } },
-                        { autoria: { contains: busca, mode: "insensitive" } },
-                        { local: { contains: busca, mode: "insensitive" } },
-                        { instituicao: { nome: { contains: busca, mode: "insensitive" } } },
-                        { tags: { some: { tag: { nome: { contains: busca, mode: "insensitive" } } } } },
-                    ];
+                    filtros.id = { in: await idsDaBusca(busca) };
                 }
 
                 const encontrados = await prisma.conteudo.findMany({ where: filtros, include: incluir });
