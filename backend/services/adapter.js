@@ -1,20 +1,13 @@
-import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 
-// Os dados de acesso ao banco vêm do DATABASE_URL, no arquivo .env
-const url = new URL(process.env.DATABASE_URL);
-
-const adapter = new PrismaMariaDb({
-  user: decodeURIComponent(url.username),
-  password: decodeURIComponent(url.password),
-  host: url.hostname,
-  port: Number(url.port) || 3306,
-  database: url.pathname.slice(1),
-  // Bancos na nuvem (como o Aiven) exigem conexão segura: DATABASE_SSL=true no .env
-  ssl: process.env.DATABASE_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-  // Tempo para abrir a conexão (em milissegundos). Banco na nuvem demora mais que o do computador.
-  connectTimeout: 20000,
-  acquireTimeout: 30000
+// O endereço do banco (Neon, PostgreSQL) vem do DATABASE_URL, no arquivo .env.
+// O próprio endereço do Neon já pede a conexão segura (sslmode=require).
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+  // Tempo para abrir a conexão (em milissegundos). O Neon "dorme" quando ninguém usa
+  // e leva alguns segundos para acordar.
+  connectionTimeoutMillis: 20000,
 });
 const prisma = new PrismaClient({ adapter });
 

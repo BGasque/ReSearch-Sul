@@ -127,12 +127,12 @@ function controller() {
                 // no local, no nome da instituição ou no nome de uma tag
                 if (busca) {
                     filtros.OR = [
-                        { titulo: { contains: busca } },
-                        { descricao: { contains: busca } },
-                        { autoria: { contains: busca } },
-                        { local: { contains: busca } },
-                        { instituicao: { nome: { contains: busca } } },
-                        { tags: { some: { tag: { nome: { contains: busca } } } } },
+                        { titulo: { contains: busca, mode: "insensitive" } },
+                        { descricao: { contains: busca, mode: "insensitive" } },
+                        { autoria: { contains: busca, mode: "insensitive" } },
+                        { local: { contains: busca, mode: "insensitive" } },
+                        { instituicao: { nome: { contains: busca, mode: "insensitive" } } },
+                        { tags: { some: { tag: { nome: { contains: busca, mode: "insensitive" } } } } },
                     ];
                 }
 

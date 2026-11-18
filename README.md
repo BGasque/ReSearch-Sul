@@ -19,19 +19,19 @@ Trabalho de Conclusão de Curso do Técnico em Informática para Internet integr
 |---|---|
 | Front-end (`frontend/`) | React, Vite, React Router, Axios, Lucide (ícones) |
 | Back-end (`backend/`) | Node.js, Express, Prisma, bcrypt, JSON Web Token |
-| Banco de dados | MySQL / MariaDB |
+| Banco de dados | PostgreSQL (Neon) |
 
 ## Como rodar no computador
 
-Pré-requisitos: Node.js e o MySQL do XAMPP ligado.
+Pré-requisitos: Node.js e um banco PostgreSQL gratuito no [Neon](https://neon.tech).
 
 **Back-end**
 
 ```bash
 cd backend
 npm install
-cp .env.example .env      # depois edite o .env
-npx prisma migrate dev    # cria as tabelas
+cp .env.example .env      # depois coloque o endereço do Neon no .env
+npx prisma migrate deploy # cria as tabelas
 npx prisma generate
 npm run seed              # dados de exemplo (opcional)
 node .

@@ -205,8 +205,8 @@ function controller() {
                 if (nome.length < 2 || nome.length > 40) return res.status(400).json("O nome da tag precisa ter entre 2 e 40 caracteres.");
                 if (!GRUPOS_TAG.includes(grupo)) return res.status(400).json(`Escolha um grupo: ${GRUPOS_TAG.join(', ')}.`);
 
-                // Não deixa criar tag repetida (o banco não diferencia maiúsculas de minúsculas)
-                const existe = await prisma.tag.findUnique({ where: { nome } });
+                // Não deixa criar tag repetida, nem com outras maiúsculas/minúsculas (ex.: "robótica" e "Robótica")
+                const existe = await prisma.tag.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
                 if (existe) return res.status(409).json("Já existe uma tag com esse nome.");
 
                 const tag = await prisma.tag.create({ data: { nome, grupo } });
@@ -228,7 +228,7 @@ function controller() {
                 if (req.body.nome !== undefined) {
                     const nome = texto(req.body.nome);
                     if (nome.length < 2 || nome.length > 40) return res.status(400).json("O nome da tag precisa ter entre 2 e 40 caracteres.");
-                    const outra = await prisma.tag.findUnique({ where: { nome } });
+                    const outra = await prisma.tag.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
                     if (outra && outra.id !== id) return res.status(409).json("Já existe uma tag com esse nome.");
                     dados.nome = nome;
                 }

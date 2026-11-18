@@ -15,7 +15,7 @@ async function buscarDaInstituicao(idTexto, instituicaoId) {
 // Já existe outro conteúdo com o mesmo título? (CU11/CU12: sinalizar possível duplicidade)
 async function avisoDuplicado(titulo, ignorarId) {
     const igual = await prisma.conteudo.findFirst({
-        where: { titulo, ...(ignorarId && { NOT: { id: ignorarId } }) },
+        where: { titulo: { equals: titulo, mode: "insensitive" }, ...(ignorarId && { NOT: { id: ignorarId } }) },
     });
     return igual ? "Atenção: já existe um conteúdo com esse mesmo título. O administrador vai conferir se não é repetido." : null;
 }
