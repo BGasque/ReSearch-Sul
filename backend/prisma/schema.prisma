@@ -57,6 +57,7 @@ model Usuario {
   interesses       Interesse[]
   estadosInteresse InteresseEstado[]
   tagsInteresse    InteresseTag[]
+  favoritos        Favorito[]
 }
 
 // 2. Áreas do conhecimento (ex.: Computação, Saúde)
@@ -92,6 +93,7 @@ model Conteudo {
   instituicao Usuario        @relation(fields: [instituicaoId], references: [id])
   areas       ConteudoArea[]
   tags        ConteudoTag[]
+  favoritos   Favorito[]
 
   @@index([instituicaoId])
 }
@@ -163,4 +165,17 @@ model InteresseTag {
 
   @@id([usuarioId, tagId])
   @@index([tagId])
+}
+
+// 10. Favoritos: eventos e publicações que cada usuário salvou com a estrelinha (N para N)
+model Favorito {
+  usuarioId  Int
+  conteudoId Int
+  criadoEm   DateTime @default(now())
+
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  conteudo Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, conteudoId])
+  @@index([conteudoId])
 }

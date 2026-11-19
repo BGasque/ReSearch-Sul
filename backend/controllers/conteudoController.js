@@ -264,4 +264,5 @@ function controller() {
     }
 }
 
+export { incluir, formatarConteudo };
 export default controller;

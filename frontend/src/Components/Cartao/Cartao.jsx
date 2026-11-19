@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { CalendarDays, MapPin, Building2, BookOpen, ArrowRight, Clock, Sparkles } from "lucide-react";
+import { CalendarDays, MapPin, Building2, BookOpen, ArrowRight, Clock, Sparkles, Star } from "lucide-react";
 import { formatarData, diasAte, textoContador } from "../../utils/auth.js";
 import "./Cartao.css";
 
@@ -8,21 +8,39 @@ const MAX_TAGS_NO_CARTAO = 5;
 // Cartão de um evento ou publicação, usado no catálogo e nos recomendados.
 // Se "motivos" vier preenchido, mostra por que o conteúdo foi recomendado.
 // destacarTags: nomes das tags que devem aparecer em destaque (as escolhidas na busca)
-const Cartao = ({ conteudo, destacarTags = [] }) => {
+// favorito + aoFavoritar: mostram a estrelinha no canto de cima (salvar nos favoritos)
+// conteudo.fechado (só nos favoritos): deixa o cartão cinza com "Inscrições fechadas"
+const Cartao = ({ conteudo, destacarTags = [], favorito = false, aoFavoritar }) => {
     const ehEvento = conteudo.tipo === 'EVENTO';
     const dias = diasAte(conteudo.prazo);
     const contador = textoContador(dias);
 
     let classe = ehEvento ? 'cartao caixa evento' : 'cartao caixa publicacao';
     if (conteudo.encerrado) classe += ' encerrado';
+    if (conteudo.fechado) classe += ' fechado';
+    if (aoFavoritar) classe += ' com-estrela';
 
     return (
         <article className={classe}>
             <div className="cartao-faixa">
                 <span className={ehEvento ? 'chip evento' : 'chip publicacao'}>{ehEvento ? 'Evento' : 'Publicação'}</span>
                 <span className="chip"><i className={`cor-estado ${conteudo.estado}`}/>{conteudo.estado}</span>
-                {conteudo.encerrado && <span className="chip fechado">Encerrado</span>}
-                {!conteudo.encerrado && contador && dias <= 15 && <span className="chip urgente">{contador}</span>}
+                {conteudo.fechado ? <span className="chip fechado">Inscrições fechadas</span>
+                    : conteudo.encerrado && <span className="chip fechado">Encerrado</span>}
+                {!conteudo.encerrado && !conteudo.fechado && contador && dias <= 15 && <span className="chip urgente">{contador}</span>}
+
+                {aoFavoritar && (
+                    <button
+                        type="button"
+                        className={favorito ? 'estrela marcada' : 'estrela'}
+                        onClick={() => aoFavoritar(conteudo.id)}
+                        aria-pressed={favorito}
+                        aria-label={favorito ? 'Tirar dos favoritos' : 'Salvar nos favoritos'}
+                        title={favorito ? 'Tirar dos favoritos' : 'Salvar nos favoritos'}
+                    >
+                        <Star className="icon"/>
+                    </button>
+                )}
             </div>
 
             <div className="cartao-corpo">
@@ -42,7 +60,7 @@ const Cartao = ({ conteudo, destacarTags = [] }) => {
                     )}
                 </ul>
 
-                {conteudo.prazo && !conteudo.encerrado && (
+                {conteudo.prazo && !conteudo.encerrado && !conteudo.fechado && (
                     <div className="prazo">
                         <Clock className="icon"/>
                         <span>

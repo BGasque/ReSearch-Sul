@@ -224,3 +224,73 @@
 .cartao .tags .mais {
     color: var(--cinza);
 }
+
+/* ----- Estrelinha de favoritos (canto de cima, à direita) ----- */
+.cartao {
+    position: relative;
+}
+
+.cartao.com-estrela .cartao-faixa {
+    padding-right: 62px;
+}
+
+.cartao .estrela {
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    background-color: var(--branco);
+    border: 2px solid var(--tinta);
+    box-shadow: var(--sombra-pequena);
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background-color 0.12s;
+}
+
+.cartao .estrela .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--tinta);
+}
+
+.cartao .estrela:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--tinta);
+}
+
+.cartao .estrela:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 var(--tinta);
+}
+
+/* Salvo: estrela amarela preenchida */
+.cartao .estrela.marcada {
+    background-color: var(--amarelo);
+}
+
+.cartao .estrela.marcada .icon {
+    fill: var(--tinta);
+}
+
+/* Favorito com inscrições fechadas: cartão todo em cinza */
+.cartao.fechado {
+    filter: grayscale(1);
+    opacity: 0.75;
+}
+
+.cartao.fechado .cartao-faixa {
+    background-color: #EFEDE7;
+}
+
+.cartao.fechado .cartao-faixa .chip.fechado {
+    background-color: var(--cinza);
+    color: var(--branco);
+    border-color: var(--tinta);
+}
+
+/* Mesmo cinza, a estrelinha continua clicável para tirar dos favoritos */
+.cartao.fechado:hover {
+    opacity: 1;
+}

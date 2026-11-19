@@ -5,6 +5,7 @@ import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import Cartao from "../Cartao/Cartao.jsx";
+import useFavoritos from "../../utils/useFavoritos.js";
 import Ilustracao from "./Ilustracao.jsx";
 import SeletorTags from "../Tags/SeletorTags.jsx";
 import { usuarioLogado } from "../../utils/auth.js";
@@ -20,6 +21,7 @@ const PASSOS = [
 
 // Página inicial: catálogo público de eventos e publicações (não precisa de login)
 const Home = () => {
+    const favoritos = useFavoritos();
     const [conteudos, setConteudos] = useState([]);
     const [todos, setTodos] = useState([]);
     const [areas, setAreas] = useState([]);
@@ -240,7 +242,7 @@ const Home = () => {
                 )}
 
                 <section className="lista">
-                    {conteudos.map((conteudo) => <Cartao key={conteudo.id} conteudo={conteudo} destacarTags={nomesTagsEscolhidas}/>)}
+                    {conteudos.map((conteudo) => <Cartao key={conteudo.id} conteudo={conteudo} destacarTags={nomesTagsEscolhidas} favorito={favoritos.ids.includes(conteudo.id)} aoFavoritar={favoritos.alternar}/>)}
                 </section>
 
                 {/* Como funciona */}

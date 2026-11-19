@@ -121,6 +121,7 @@ const Termos = () => (
                             <tr><td>Link do Currículo Lattes</td><td>Só se você quiser informar</td></tr>
                             <tr><td>Dados do arquivo XML do Lattes (nome, áreas, artigos e trabalhos em eventos)</td><td>Só se você enviar o arquivo</td></tr>
                             <tr><td>Tags, áreas e estados de interesse</td><td>Só se você escolher</td></tr>
+                            <tr><td>Eventos e publicações salvos nos favoritos</td><td>Só se você clicar na estrelinha</td></tr>
                             <tr><td>Eventos e publicações cadastrados</td><td>Contas de instituição</td></tr>
                         </tbody>
                     </table>
@@ -135,7 +136,7 @@ const Termos = () => (
                             isso porque é necessário para o serviço que você pediu (art. 7º, inciso V).
                         </li>
                         <li>
-                            <strong>Lattes e interesses:</strong> para mostrar no seu perfil e recomendar eventos.
+                            <strong>Lattes, interesses e favoritos:</strong> para mostrar no seu perfil e recomendar eventos.
                             Isso depende do seu <strong>consentimento</strong> (art. 7º, inciso I): você escolhe se
                             informa ou não, e pode apagar quando quiser.
                         </li>
@@ -181,7 +182,7 @@ const Termos = () => (
                         <li>para receber uma cópia dos seus dados;</li>
                         <li>para apagar seus dados e a sua conta;</li>
                         <li>para saber com quem os dados são compartilhados;</li>
-                        <li>para retirar o consentimento (por exemplo, tirar o Lattes ou os interesses do perfil).</li>
+                        <li>para retirar o consentimento (por exemplo, tirar o Lattes, os interesses ou os favoritos do perfil).</li>
                     </ul>
                     <p>
                         Quase tudo dá para fazer sozinho, na parte <strong>Meus dados</strong> do seu perfil:

@@ -7,6 +7,7 @@ import Rodape from "../Rodape/Rodape.jsx";
 import { cabecalhoAuth, pegarToken, formatarData } from "../../utils/auth.js";
 import Interesses from "./Interesses.jsx";
 import MeusDados from "./MeusDados.jsx";
+import MeusFavoritos from "./MeusFavoritos.jsx";
 import "./Perfil.css";
 
 const NOMES_TIPO = {
@@ -111,6 +112,8 @@ const Perfil = () => {
             </section>
 
             <main className="mainPerfil container">
+
+                <MeusFavoritos/>
 
                 {usuario.tipo === 'PESSOA' && <Interesses areasLattes={dados?.areas || []}/>}
 

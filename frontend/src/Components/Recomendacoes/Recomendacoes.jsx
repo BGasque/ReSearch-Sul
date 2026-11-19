@@ -4,6 +4,7 @@ import { Sparkles, Target } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Cartao from "../Cartao/Cartao.jsx";
+import useFavoritos from "../../utils/useFavoritos.js";
 import Rodape from "../Rodape/Rodape.jsx";
 import { cabecalhoAuth, pegarToken } from "../../utils/auth.js";
 import "../Home/Home.css";
@@ -11,6 +12,7 @@ import "./Recomendacoes.css";
 
 // Página "Recomendados para você": conteúdos que combinam com os interesses do usuário
 const Recomendacoes = () => {
+    const favoritos = useFavoritos();
     const navigate = useNavigate();
     const [resultado, setResultado] = useState(null);
 
@@ -68,7 +70,7 @@ const Recomendacoes = () => {
                 )}
 
                 <section className="lista">
-                    {resultado?.conteudos.map((conteudo) => <Cartao key={conteudo.id} conteudo={conteudo}/>)}
+                    {resultado?.conteudos.map((conteudo) => <Cartao key={conteudo.id} conteudo={conteudo} favorito={favoritos.ids.includes(conteudo.id)} aoFavoritar={favoritos.alternar}/>)}
                 </section>
             </main>
 

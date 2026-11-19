@@ -3,6 +3,7 @@ import controller from '../controllers/userController.js';
 import authUser from '../services/auth.js';
 import lattes from '../controllers/lattesController.js';
 import interesses from '../controllers/interesseController.js';
+import favoritos from '../controllers/favoritoController.js';
 
 //  Inicializando rotas do usuário
 const routes = express.Router();
@@ -10,6 +11,7 @@ const routes = express.Router();
 const userController = controller();
 const lattesController = lattes();
 const interesseController = interesses();
+const favoritoController = favoritos();
 //  Rotas
 
 //  Cadastrar usuário
@@ -34,6 +36,11 @@ routes.post('/perfil/lattes/xml',authUser, lattesController.importarXml);
 //  Interesses (áreas e estados)
 routes.get('/perfil/interesses',authUser, interesseController.verInteresses);
 routes.put('/perfil/interesses',authUser, interesseController.salvarInteresses);
+
+//  Favoritos (estrelinha nos cartões)
+routes.get('/favoritos',authUser, favoritoController.listar);
+routes.post('/favoritos/:id',authUser, favoritoController.salvar);
+routes.delete('/favoritos/:id',authUser, favoritoController.remover);
 
 
 //  Logar usuário

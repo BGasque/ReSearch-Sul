@@ -317,3 +317,21 @@
 .meus-dados .confirmar-exclusao .botao-contorno {
     align-self: flex-start;
 }
+
+/* ----- Meus favoritos ----- */
+.meus-favoritos .lista-favoritos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    margin-top: 6px;
+}
+
+.meus-favoritos .lista-favoritos .cartao h2 {
+    font-size: 20px;
+}
+
+/* Nos cartões dos favoritos, os títulos quebram entre as palavras (não no meio delas) */
+.meus-favoritos .cartao a {
+    word-break: normal;
+    overflow-wrap: break-word;
+}

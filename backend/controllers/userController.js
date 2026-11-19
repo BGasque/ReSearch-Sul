@@ -190,6 +190,7 @@ function controller() {
                         tagsInteresse: { include: { tag: true } },
                         estadosInteresse: true,
                         conteudos: { include: { areas: { include: { area: true } }, tags: { include: { tag: true } } } },
+                        favoritos: { include: { conteudo: { select: { titulo: true } } } },
                     },
                 });
                 if (!usuario) return res.status(404).json("Usuário não encontrado.");
@@ -215,6 +216,10 @@ function controller() {
                         tags: usuario.tagsInteresse.map((item) => item.tag.nome),
                         estados: usuario.estadosInteresse.map((item) => item.estado),
                     },
+                    favoritos: usuario.favoritos.map((favorito) => ({
+                        titulo: favorito.conteudo.titulo,
+                        salvoEm: favorito.criadoEm,
+                    })),
                     conteudosCadastrados: usuario.conteudos.map((conteudo) => ({
                         titulo: conteudo.titulo,
                         tipo: conteudo.tipo,
