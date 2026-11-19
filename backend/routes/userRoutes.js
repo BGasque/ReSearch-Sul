@@ -18,6 +18,10 @@ const favoritoController = favoritos();
 routes.post('/registerUser',userController.registerUser);
 routes.post('/loginUser',userController.logUser);
 
+//  Esqueci a senha
+routes.post('/esqueci-senha',userController.esqueciSenha);
+routes.post('/redefinir-senha',userController.redefinirSenha);
+
 routes.get('/auth',authUser, (req,res) => {
     res.status(200).json("Authentication Succeed!")
 })

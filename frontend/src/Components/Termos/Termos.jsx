@@ -151,7 +151,8 @@ const Termos = () => (
                     <p>
                         Para o site funcionar na internet, os dados ficam guardados em serviços de hospedagem:
                         o <strong>Neon</strong> (banco de dados), o <strong>Render</strong> (servidor) e
-                        a <strong>Vercel</strong> (páginas do site). Alguns desses serviços podem ficar fora do Brasil,
+                        a <strong>Vercel</strong> (páginas do site). Quando você usa "Esqueci a senha", seu nome e
+                        seu e-mail passam pelo <strong>Brevo</strong>, o serviço que envia o e-mail com o link. Alguns desses serviços podem ficar fora do Brasil,
                         por exemplo nos Estados Unidos. Eles só guardam e processam os dados para o site funcionar,
                         e não podem usá-los para outras coisas.
                     </p>

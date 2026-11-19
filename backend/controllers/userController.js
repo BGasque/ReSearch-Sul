@@ -1,9 +1,19 @@
 import prisma from '../services/adapter.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'node:crypto';
+import enviarEmail from '../services/email.js';
 
 // Formato simples de e-mail: algo@algo.algo
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Recuperação de senha: o link vale por 1 hora
+const VALIDADE_LINK = 60 * 60 * 1000;
+
+// Resumo (hash) do código: é isso que fica no banco, nunca o código em si
+function resumo(codigo) {
+    return crypto.createHash('sha256').update(codigo).digest('hex');
+}
 
 function controller() {
     return {
@@ -163,6 +173,83 @@ function controller() {
                 console.log(error.message)
                 res.status(500).json("Erro no servidor.");
            }
+        },
+
+        // "Esqueci a senha": manda por e-mail um link para criar uma senha nova.
+        // A resposta é sempre a mesma, para ninguém descobrir quais e-mails têm conta.
+        async esqueciSenha(req, res) {
+            const RESPOSTA = "Se este e-mail tiver uma conta, enviamos um link para criar uma nova senha. Confira também a caixa de spam.";
+            try {
+                const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+                if (!email || !FORMATO_EMAIL.test(email)) {
+                    return res.status(400).json("Informe um e-mail válido.");
+                }
+
+                const usuario = await prisma.usuario.findUnique({ where: { email } });
+                if (!usuario) return res.status(200).json(RESPOSTA);
+
+                // Código aleatório e difícil de adivinhar; no banco fica só o resumo dele
+                const codigo = crypto.randomBytes(32).toString('hex');
+                await prisma.usuario.update({
+                    where: { id: usuario.id },
+                    data: { resetSenhaHash: resumo(codigo), resetSenhaExpira: new Date(Date.now() + VALIDADE_LINK) },
+                });
+
+                const site = process.env.FRONTEND_URL || 'http://localhost:5173';
+                const link = `${site}/redefinir-senha?codigo=${codigo}`;
+
+                await enviarEmail({
+                    para: usuario.email,
+                    nome: usuario.nome,
+                    assunto: "ReSearch Sul: criar uma nova senha",
+                    texto: `Olá, ${usuario.nome}!
+
+Recebemos um pedido para criar uma nova senha na sua conta do ReSearch Sul.
+Abra o link abaixo (ele vale por 1 hora):
+
+${link}
+
+Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.`,
+                    html: `<p>Olá, ${usuario.nome.replace(/[<>&"]/g, '')}!</p>
+                        <p>Recebemos um pedido para criar uma nova senha na sua conta do <strong>ReSearch Sul</strong>.</p>
+                        <p><a href="${link}">Clique aqui para criar uma nova senha</a> (o link vale por 1 hora).</p>
+                        <p>Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.</p>`,
+                });
+
+                res.status(200).json(RESPOSTA);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Não foi possível enviar o e-mail agora. Tente de novo mais tarde.");
+            }
+        },
+
+        // Cria a senha nova a partir do código que veio no link do e-mail
+        async redefinirSenha(req, res) {
+            try {
+                const { codigo, senha } = req.body;
+                if (typeof codigo !== 'string' || !/^[0-9a-f]{64}$/.test(codigo)) {
+                    return res.status(400).json("Link inválido. Peça um novo em \"Esqueci a senha\".");
+                }
+                if (typeof senha !== 'string' || senha.length < 6 || senha.length > 72) {
+                    return res.status(400).json("A senha precisa ter entre 6 e 72 caracteres.");
+                }
+
+                const usuario = await prisma.usuario.findFirst({ where: { resetSenhaHash: resumo(codigo) } });
+                if (!usuario || !usuario.resetSenhaExpira || usuario.resetSenhaExpira < new Date()) {
+                    return res.status(400).json("Este link venceu ou já foi usado. Peça um novo em \"Esqueci a senha\".");
+                }
+
+                // Troca a senha e apaga o código: o mesmo link não funciona duas vezes
+                await prisma.usuario.update({
+                    where: { id: usuario.id },
+                    data: { senha: await bcrypt.hash(senha, 10), resetSenhaHash: null, resetSenhaExpira: null },
+                });
+
+                res.status(200).json("Senha alterada! Agora é só entrar com a senha nova.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
         },
 
         // LGPD (art. 18, inciso III): corrigir o próprio nome

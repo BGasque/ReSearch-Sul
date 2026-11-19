@@ -301,3 +301,11 @@
     font-weight: 700;
     color: var(--azul);
 }
+
+/* Link "Esqueci minha senha" embaixo do campo de senha */
+.link-esqueci {
+    align-self: flex-end;
+    margin-top: -8px;
+    font-size: 14px;
+    color: var(--azul);
+}

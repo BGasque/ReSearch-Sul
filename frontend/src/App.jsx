@@ -12,6 +12,8 @@ import FormConteudo from './Components/Instituicao/FormConteudo';
 import Moderacao from './Components/Admin/Moderacao';
 import GerenciarTags from './Components/Admin/GerenciarTags';
 import Termos from './Components/Termos/Termos';
+import EsqueciSenha from './Components/Acesso/EsqueciSenha';
+import RedefinirSenha from './Components/Acesso/RedefinirSenha';
 
 // Sempre que muda de página, volta para o topo.
 // Se o endereço tiver #parte (ex.: /termos#privacidade), rola até essa parte.
@@ -34,6 +36,10 @@ function App() {
           <Route path="/login" element={<Login/>}/>
 
           <Route path="/register" element={<Register/>}/>
+
+          <Route path="/esqueci-senha" element={<EsqueciSenha/>}/>
+
+          <Route path="/redefinir-senha" element={<RedefinirSenha/>}/>
 
           <Route path="/" element={<Home/>}/>
 

@@ -47,6 +47,8 @@ const Login = () => {
             <input type="password" className="campo" value={senha} required onChange={(e) => {setSenha(e.target.value)}}/>
           </label>
 
+          <Link to="/esqueci-senha" className="link-esqueci">Esqueci minha senha</Link>
+
           {mensagem && <p className="mensagem erro">{mensagem}</p>}
 
           <button type="submit" className="botao-azul">Entrar</button>

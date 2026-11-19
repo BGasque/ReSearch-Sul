@@ -51,6 +51,9 @@ model Usuario {
   lattesDados       Json?
   lattesImportadoEm DateTime?
   termosAceitosEm   DateTime? // quando aceitou os Termos de uso e a Política de privacidade (prova do consentimento, LGPD art. 8º)
+  // Recuperação de senha ("Esqueci a senha"): guardamos só o resumo (hash) do código, nunca o código
+  resetSenhaHash    String?
+  resetSenhaExpira  DateTime?
   criadoEm          DateTime  @default(now())
 
   conteudos        Conteudo[] // conteúdos cadastrados (se for instituição)
