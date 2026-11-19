@@ -2,6 +2,7 @@ import { useState } from 'react'
 import "../Acesso/Acesso.css"
 import { Link, useNavigate } from "react-router";
 import api from '../../../services/api.js';
+import AvisoLgpd from '../Acesso/AvisoLgpd.jsx';
 import PainelAcesso from '../Acesso/PainelAcesso.jsx';
 
 const Login = () => {
@@ -55,6 +56,8 @@ const Login = () => {
             <p><Link to="/">Ver o catálogo sem entrar</Link></p>
           </div>
         </form>
+
+        <AvisoLgpd/>
       </section>
     </main>
     )

@@ -22,6 +22,7 @@ const Rodape = () => (
                 <Link to="/recomendacoes">Recomendados</Link>
                 <Link to="/perfil">Meu perfil</Link>
                 <Link to="/register">Criar conta</Link>
+                <Link to="/termos">Termos e privacidade</Link>
             </nav>
 
             <div className="rodape-links">

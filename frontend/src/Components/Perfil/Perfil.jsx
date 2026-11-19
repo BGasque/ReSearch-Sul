@@ -6,6 +6,7 @@ import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import { cabecalhoAuth, pegarToken, formatarData } from "../../utils/auth.js";
 import Interesses from "./Interesses.jsx";
+import MeusDados from "./MeusDados.jsx";
 import "./Perfil.css";
 
 const NOMES_TIPO = {
@@ -207,6 +208,8 @@ const Perfil = () => {
                         )}
                     </section>
                 )}
+
+                <MeusDados usuario={usuario} aoMudarNome={carregar}/>
             </main>
 
             <Rodape/>

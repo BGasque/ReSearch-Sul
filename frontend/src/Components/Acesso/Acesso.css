@@ -98,6 +98,7 @@
 /* ----- Formulário ----- */
 .acesso-formulario {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 48px 24px;
@@ -223,4 +224,80 @@
     .acesso-formulario h1 {
         font-size: 34px;
     }
+}
+
+/* Aviso da LGPD embaixo dos formulários de login e cadastro */
+.aviso-lgpd {
+    width: 100%;
+    max-width: 440px;
+    box-sizing: border-box;
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+    padding: 14px 16px;
+    background-color: #E6F7EF;
+    border: 2px solid var(--tinta);
+    box-shadow: var(--sombra-pequena);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cinza);
+}
+
+.aviso-lgpd p {
+    margin: 0 0 6px;
+}
+
+.aviso-lgpd p:last-child {
+    margin-bottom: 0;
+}
+
+.aviso-lgpd .aviso-lgpd-titulo {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--tinta);
+}
+
+.aviso-lgpd-icone {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    background-color: var(--verde);
+    border: 2px solid var(--tinta);
+    color: var(--tinta);
+}
+
+.aviso-lgpd-icone .icon {
+    width: 18px;
+    height: 18px;
+}
+
+.aviso-lgpd a {
+    font-weight: 700;
+    color: var(--azul);
+}
+
+/* Caixinha de aceite dos termos no cadastro */
+.aceite-termos {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    cursor: pointer;
+}
+
+.aceite-termos input {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 1px 0 0;
+    accent-color: var(--azul);
+    cursor: pointer;
+}
+
+.aceite-termos a {
+    font-weight: 700;
+    color: var(--azul);
 }

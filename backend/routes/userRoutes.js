@@ -22,6 +22,11 @@ routes.get('/auth',authUser, (req,res) => {
 
 routes.get('/me',authUser, userController.getUser);
 
+//  Direitos da LGPD: corrigir o nome, baixar os dados e apagar a conta
+routes.put('/perfil/nome',authUser, userController.editarNome);
+routes.get('/perfil/meus-dados',authUser, userController.meusDados);
+routes.delete('/perfil/conta',authUser, userController.excluirConta);
+
 //  Currículo Lattes do perfil
 routes.put('/perfil/lattes',authUser, lattesController.salvarLink);
 routes.post('/perfil/lattes/xml',authUser, lattesController.importarXml);

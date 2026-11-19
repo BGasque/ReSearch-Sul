@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 //  Integração com o servidor por meio da api
 import api from '../../../services/api.js';
 import { useState } from "react";
+import AvisoLgpd from '../Acesso/AvisoLgpd.jsx';
 import PainelAcesso from "../Acesso/PainelAcesso.jsx";
 
 const Register = () => {
@@ -12,6 +13,7 @@ const Register = () => {
     const [email,setEmail] = useState('');
     const [senha,setSenha] = useState('');
     const [tipo,setTipo] = useState('PESSOA');
+    const [aceitouTermos,setAceitouTermos] = useState(false);
     const [mensagem,setMensagem] = useState('');
 
     const navigate = useNavigate();
@@ -20,7 +22,7 @@ const Register = () => {
         e.preventDefault();
 
         try {
-          await api.post('/registerUser',{nome,email,senha,tipo});
+          await api.post('/registerUser',{nome,email,senha,tipo,aceitouTermos});
 
           // Cadastro feito: vai para o login
           navigate('/login');
@@ -64,6 +66,16 @@ const Register = () => {
             <input type="password" className="campo" minLength={6} value={senha} required onChange={(e) => {setSenha(e.target.value)}}/>
           </label>
 
+          {/* Aceite dos termos: obrigatório e começa desmarcado (consentimento livre, LGPD art. 8º) */}
+          <label className="aceite-termos">
+            <input type="checkbox" checked={aceitouTermos} required onChange={(e) => {setAceitouTermos(e.target.checked)}}/>
+            <span>
+              Tenho 12 anos ou mais e li e aceito os{' '}
+              <Link to="/termos#termos" target="_blank">Termos de uso</Link> e a{' '}
+              <Link to="/termos#privacidade" target="_blank">Política de privacidade</Link>.
+            </span>
+          </label>
+
           {mensagem && <p className="mensagem erro">{mensagem}</p>}
 
           <button type="submit" className="botao-azul">Criar conta</button>
@@ -72,6 +84,8 @@ const Register = () => {
             <p>Já tem uma conta? <Link to="/login">Entrar</Link></p>
           </div>
         </form>
+
+        <AvisoLgpd/>
       </section>
     </main>
     )

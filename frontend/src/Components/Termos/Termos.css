@@ -1,0 +1,134 @@
+/* Página de Termos de uso e Política de privacidade */
+.termos {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 32px;
+    align-items: start;
+    padding-top: 40px;
+    padding-bottom: 64px;
+}
+
+/* Índice que acompanha a rolagem */
+.termos-indice {
+    position: sticky;
+    top: 90px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    border-top: 6px solid var(--amarelo);
+}
+
+.termos-indice a {
+    font-weight: 700;
+    color: var(--azul);
+}
+
+.termos-data {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--cinza);
+}
+
+.termos-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.termos-texto section {
+    padding: 32px;
+    scroll-margin-top: 90px;
+}
+
+#termos {
+    border-top: 8px solid var(--azul);
+}
+
+#privacidade {
+    border-top: 8px solid var(--verde);
+}
+
+.termos-texto .icone-quadrado.verde {
+    background-color: var(--verde);
+}
+
+.termos-texto h2 {
+    font-size: 34px;
+    margin: 6px 0 8px;
+}
+
+.termos-texto h3 {
+    font-size: 19px;
+    margin: 26px 0 8px;
+    scroll-margin-top: 90px;
+}
+
+.termos-texto p,
+.termos-texto li {
+    line-height: 1.65;
+    color: var(--tinta);
+}
+
+.termos-texto ul {
+    padding-left: 22px;
+    margin: 8px 0;
+}
+
+.termos-texto li + li {
+    margin-top: 6px;
+}
+
+.termos-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 15px;
+}
+
+.termos-tabela th,
+.termos-tabela td {
+    border: 2px solid var(--tinta);
+    padding: 8px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.termos-tabela th {
+    background-color: var(--amarelo);
+}
+
+@media (max-width: 800px) {
+    .termos {
+        grid-template-columns: 1fr;
+    }
+
+    .termos-indice {
+        position: static;
+    }
+
+    .termos-texto section {
+        padding: 22px 18px;
+    }
+
+    .termos-texto h2 {
+        font-size: 28px;
+    }
+
+    .termos-tabela {
+        font-size: 14px;
+    }
+}
+
+.termos-contato {
+    padding: 10px 14px;
+    background-color: #E6F7EF;
+    border: 2px solid var(--tinta);
+    overflow-wrap: anywhere;
+}
+
+.termos-texto a {
+    font-weight: 700;
+    color: var(--azul);
+    overflow-wrap: anywhere;
+}

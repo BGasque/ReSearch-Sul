@@ -50,6 +50,7 @@ model Usuario {
   // Dados importados do XML do Lattes (nome, áreas, artigos, trabalhos em eventos)
   lattesDados       Json?
   lattesImportadoEm DateTime?
+  termosAceitosEm   DateTime? // quando aceitou os Termos de uso e a Política de privacidade (prova do consentimento, LGPD art. 8º)
   criadoEm          DateTime  @default(now())
 
   conteudos        Conteudo[] // conteúdos cadastrados (se for instituição)

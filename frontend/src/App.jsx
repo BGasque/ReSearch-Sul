@@ -11,13 +11,17 @@ import MinhaInstituicao from './Components/Instituicao/MinhaInstituicao';
 import FormConteudo from './Components/Instituicao/FormConteudo';
 import Moderacao from './Components/Admin/Moderacao';
 import GerenciarTags from './Components/Admin/GerenciarTags';
+import Termos from './Components/Termos/Termos';
 
-// Sempre que muda de página, volta para o topo
+// Sempre que muda de página, volta para o topo.
+// Se o endereço tiver #parte (ex.: /termos#privacidade), rola até essa parte.
 function VoltarAoTopo() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+    const parte = hash && document.getElementById(hash.slice(1));
+    if (parte) parte.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }, [pathname, hash]);
   return null;
 }
 
@@ -38,6 +42,8 @@ function App() {
           <Route path="/conteudo/:id" element={<Detalhe/>}/>
 
           <Route path="/recomendacoes" element={<Recomendacoes/>}/>
+
+          <Route path="/termos" element={<Termos/>}/>
 
           {/* Área da instituição */}
           <Route path="/instituicao" element={<MinhaInstituicao/>}/>

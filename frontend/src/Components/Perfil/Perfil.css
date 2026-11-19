@@ -264,3 +264,56 @@
         border-right: 2px solid var(--tinta);
     }
 }
+
+/* ----- Meus dados (LGPD) ----- */
+.botao-perigo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 2px solid var(--tinta);
+    background-color: var(--coral);
+    color: var(--tinta);
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: var(--sombra-pequena);
+    transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.botao-perigo:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 var(--tinta);
+}
+
+.botao-perigo .icon {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+}
+
+.caixa-perfil .linha .botao-perigo {
+    box-shadow: none;
+}
+
+.caixa-perfil .linha .botao-perigo:hover {
+    transform: none;
+}
+
+.meus-dados .confirmar-exclusao {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background-color: #FFECE7;
+    border: 2px solid var(--tinta);
+}
+
+.meus-dados .confirmar-exclusao p {
+    margin: 0;
+}
+
+.meus-dados .confirmar-exclusao .botao-contorno {
+    align-self: flex-start;
+}
