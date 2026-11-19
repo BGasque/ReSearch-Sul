@@ -92,6 +92,33 @@ textarea {
   color: inherit;
 }
 
+/* Caixas de texto: letras sempre escuras, mesmo dentro de faixas coloridas
+   (antes elas copiavam o branco da faixa azul e o texto sumia no fundo branco) */
+input,
+select,
+textarea {
+  color: var(--tinta);
+}
+
+/* Tracinho que pisca ao digitar: azul, para aparecer bem */
+input,
+textarea {
+  caret-color: var(--azul);
+}
+
+/* Ponteiro do mouse em cima das caixas de texto: escuro com contorno branco,
+   para não "sumir" no fundo branco */
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]),
+textarea {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='24' viewBox='0 0 16 24'%3E%3Cpath d='M4 2h3l1 1 1-1h3M8 3v18M4 22h3l1-1 1 1h3' fill='none' stroke='%23fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M4 2h3l1 1 1-1h3M8 3v18M4 22h3l1-1 1 1h3' fill='none' stroke='%2314152B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 8 12, text;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--cinza);
+  opacity: 1;
+}
+
 a {
   color: var(--azul);
   font-weight: 600;
