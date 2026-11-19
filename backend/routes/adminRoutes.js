@@ -25,4 +25,9 @@ routes.post('/admin/tags', protegido, adminController.criarTag);
 routes.patch('/admin/tags/:id', protegido, adminController.editarTag);
 routes.delete('/admin/tags/:id', protegido, adminController.excluirTag);
 
+//  Usuários e instituições (CU15)
+routes.get('/admin/usuarios', protegido, adminController.listarUsuarios);
+routes.patch('/admin/usuarios/:id', protegido, adminController.editarUsuario);
+routes.delete('/admin/usuarios/:id', protegido, adminController.excluirUsuario);
+
 export default routes;

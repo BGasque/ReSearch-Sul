@@ -103,7 +103,10 @@ const Moderacao = () => {
                         <h1>Moderação de <span className="marca-texto">conteúdos</span></h1>
                         <p>Confira o que as instituições enviaram. Só o que você aprovar aparece no catálogo.</p>
                     </div>
-                    <Link to="/admin/tags" className="botao-amarelo botao-grande"><Hash className="icon"/> Gerenciar tags</Link>
+                    <div className="admin-atalhos">
+                        <Link to="/admin/usuarios" className="botao-amarelo botao-grande"><Users className="icon"/> Usuários e instituições</Link>
+                        <Link to="/admin/tags" className="botao-amarelo botao-grande"><Hash className="icon"/> Gerenciar tags</Link>
+                    </div>
                 </div>
             </section>
 
@@ -116,6 +119,12 @@ const Moderacao = () => {
                         </div>
                     ))}
                 </section>
+
+                {resumo?.aguardando > 0 && (
+                    <p className="mensagem aviso-amarelo">
+                        {resumo.aguardando === 1 ? '1 instituição nova está' : `${resumo.aguardando} instituições novas estão`} aguardando verificação. <Link to="/admin/usuarios">Ver agora</Link>
+                    </p>
+                )}
 
                 {mensagem?.texto && <p className={mensagem.erro ? 'mensagem erro' : 'mensagem'}>{mensagem.texto}</p>}
 

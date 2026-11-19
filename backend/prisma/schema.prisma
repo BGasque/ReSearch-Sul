@@ -54,6 +54,9 @@ model Usuario {
   // Recuperação de senha ("Esqueci a senha"): guardamos só o resumo (hash) do código, nunca o código
   resetSenhaHash    String?
   resetSenhaExpira  DateTime?
+  // Controle do administrador (CU15)
+  bloqueado         Boolean   @default(false) // conta bloqueada não consegue entrar
+  verificado        Boolean   @default(false) // instituição conferida pelo administrador (só então pode cadastrar conteúdos)
   criadoEm          DateTime  @default(now())
 
   conteudos        Conteudo[] // conteúdos cadastrados (se for instituição)

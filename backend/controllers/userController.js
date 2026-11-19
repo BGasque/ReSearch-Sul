@@ -120,6 +120,11 @@ function controller() {
                     return res.status(401).json("E-mail ou senha incorretos.");
                 }
 
+                // Conta bloqueada pelo administrador não entra
+                if (usuario.bloqueado) {
+                    return res.status(403).json("Esta conta foi bloqueada pelo administrador. Fale com o encarregado pelo e-mail dos Termos de uso.");
+                }
+
                 // Criando o payload de jwt
                 const payload = {
                     id: usuario.id,
@@ -167,7 +172,8 @@ function controller() {
                     lattes: usuario.lattes,
                     lattesId: usuario.lattesId,
                     lattesDados: usuario.lattesDados,
-                    lattesImportadoEm: usuario.lattesImportadoEm
+                    lattesImportadoEm: usuario.lattesImportadoEm,
+                    verificado: usuario.verificado
                 });
            }catch(error){
                 console.log(error.message)

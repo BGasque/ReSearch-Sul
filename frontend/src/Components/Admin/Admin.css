@@ -299,3 +299,99 @@
         flex-wrap: wrap;
     }
 }
+
+/* ===== Usuários e instituições (CU15) ===== */
+.admin-atalhos {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.filtro-contas {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 14px;
+    padding: 18px;
+}
+
+.lista-contas {
+    list-style: none;
+}
+
+.conta-linha {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 16px;
+    flex-wrap: wrap;
+}
+
+.conta-linha + .conta-linha {
+    border-top: 1px solid var(--linha);
+}
+
+.conta-linha.bloqueada {
+    background-color: #FFF0EC;
+}
+
+.conta-dados {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.conta-nome {
+    font-size: 17px;
+}
+
+.conta-email {
+    color: var(--cinza);
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.conta-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+}
+
+.conta-info {
+    font-size: 13px;
+    color: var(--cinza);
+    font-weight: 600;
+}
+
+.conta-edicao {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.conta-edicao .campo {
+    padding: 6px 10px;
+}
+
+.conta-acoes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.campo-pequeno {
+    width: auto;
+    padding: 6px 10px;
+    font-size: 14px;
+}
+
+@media (max-width: 600px) {
+    .filtro-contas {
+        grid-template-columns: 1fr;
+    }
+}

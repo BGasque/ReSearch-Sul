@@ -6,6 +6,19 @@ import { incluirPainel, formatarPainel } from '../services/formatarPainel.js';
 // O administrador vê os conteúdos de TODAS as instituições e pode aprovar, recusar, editar e excluir.
 
 const SITUACOES = ['PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO'];
+const TIPOS_CONTA = ['PESSOA', 'INSTITUICAO', 'ADMIN'];
+
+// Campos da conta que o administrador vê (nunca a senha)
+const CAMPOS_USUARIO = {
+    id: true, nome: true, email: true, tipo: true, bloqueado: true, verificado: true,
+    criadoEm: true, termosAceitosEm: true,
+    _count: { select: { conteudos: true, favoritos: true } },
+};
+
+function formatarUsuario({ _count, ...usuario }) {
+    return { ...usuario, conteudos: _count.conteudos, favoritos: _count.favoritos };
+}
+
 const GRUPOS_TAG = ['Eixo', 'Nível de ensino', 'Formato', 'Tema'];
 
 // Procura um conteúdo de qualquer instituição pelo id da URL
@@ -30,10 +43,11 @@ function controller() {
         // Números do topo do painel
         async resumo(req, res) {
             try {
-                const [porSituacao, porTipoConta, tags] = await Promise.all([
+                const [porSituacao, porTipoConta, tags, aguardando] = await Promise.all([
                     prisma.conteudo.groupBy({ by: ['situacao'], _count: true }),
                     prisma.usuario.groupBy({ by: ['tipo'], _count: true }),
                     prisma.tag.count({ where: { ativa: true } }),
+                    prisma.usuario.count({ where: { tipo: 'INSTITUICAO', verificado: false } }),
                 ]);
 
                 const conteudos = Object.fromEntries(SITUACOES.map((s) => [s, 0]));
@@ -42,7 +56,7 @@ function controller() {
                 const contas = { PESSOA: 0, INSTITUICAO: 0, ADMIN: 0 };
                 porTipoConta.forEach((item) => { contas[item.tipo] = item._count; });
 
-                res.status(200).json({ conteudos, contas, tags });
+                res.status(200).json({ conteudos, contas, tags, aguardando });
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");
@@ -264,6 +278,113 @@ function controller() {
 
                 await prisma.tag.delete({ where: { id } });
                 res.status(200).json("Tag excluída.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // ---------- Usuários e instituições (CU15) ----------
+
+        // Lista de contas. Filtros: busca (nome ou e-mail), tipo e situacao (ativos, bloqueados, aguardando)
+        async listarUsuarios(req, res) {
+            try {
+                const busca = texto(req.query.busca);
+                const { tipo, situacao } = req.query;
+                if (tipo && !TIPOS_CONTA.includes(tipo)) return res.status(400).json("Tipo de conta inválido.");
+
+                const filtros = {};
+                if (tipo) filtros.tipo = tipo;
+                if (situacao === 'ativos') filtros.bloqueado = false;
+                else if (situacao === 'bloqueados') filtros.bloqueado = true;
+                else if (situacao === 'aguardando') { filtros.tipo = 'INSTITUICAO'; filtros.verificado = false; }
+                else if (situacao) return res.status(400).json("Situação inválida.");
+
+                if (busca) {
+                    filtros.OR = [
+                        { nome: { contains: busca, mode: 'insensitive' } },
+                        { email: { contains: busca, mode: 'insensitive' } },
+                    ];
+                }
+
+                const usuarios = await prisma.usuario.findMany({
+                    where: filtros,
+                    select: CAMPOS_USUARIO,
+                    orderBy: { criadoEm: 'desc' },
+                    take: 200,
+                });
+                res.status(200).json(usuarios.map(formatarUsuario));
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Mudar nome, e-mail, tipo, bloqueio ou verificação de uma conta
+        async editarUsuario(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const usuario = Number.isInteger(id) ? await prisma.usuario.findUnique({ where: { id } }) : null;
+                if (!usuario) return res.status(404).json("Conta não encontrada.");
+
+                const ehVoceMesmo = id === req.user.id;
+                const { tipo, bloqueado, verificado } = req.body;
+                const dados = {};
+
+                if (req.body.nome !== undefined) {
+                    const nome = texto(req.body.nome);
+                    if (nome.length < 2 || nome.length > 120) return res.status(400).json("O nome precisa ter de 2 a 120 caracteres.");
+                    dados.nome = nome;
+                }
+
+                if (req.body.email !== undefined) {
+                    const email = texto(req.body.email).toLowerCase();
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) return res.status(400).json("E-mail inválido.");
+                    const outra = await prisma.usuario.findUnique({ where: { email } });
+                    if (outra && outra.id !== id) return res.status(409).json("Já existe outra conta com este e-mail.");
+                    dados.email = email;
+                }
+
+                if (tipo !== undefined) {
+                    if (!TIPOS_CONTA.includes(tipo)) return res.status(400).json("Tipo de conta inválido.");
+                    if (ehVoceMesmo && tipo !== 'ADMIN') return res.status(400).json("Você não pode tirar o seu próprio acesso de administrador.");
+                    dados.tipo = tipo;
+                }
+
+                if (bloqueado !== undefined) {
+                    if (typeof bloqueado !== 'boolean') return res.status(400).json("Valor de bloqueio inválido.");
+                    if (ehVoceMesmo && bloqueado) return res.status(400).json("Você não pode bloquear a sua própria conta.");
+                    dados.bloqueado = bloqueado;
+                }
+
+                if (verificado !== undefined) {
+                    if (typeof verificado !== 'boolean') return res.status(400).json("Valor de verificação inválido.");
+                    dados.verificado = verificado;
+                }
+
+                if (Object.keys(dados).length === 0) return res.status(400).json("Nada para mudar.");
+
+                const atualizado = await prisma.usuario.update({ where: { id }, data: dados, select: CAMPOS_USUARIO });
+                res.status(200).json(formatarUsuario(atualizado));
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Apagar uma conta (e os conteúdos dela, se for instituição)
+        async excluirUsuario(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const usuario = Number.isInteger(id) ? await prisma.usuario.findUnique({ where: { id } }) : null;
+                if (!usuario) return res.status(404).json("Conta não encontrada.");
+                if (id === req.user.id) return res.status(400).json("Você não pode apagar a sua própria conta por aqui.");
+
+                await prisma.$transaction([
+                    prisma.conteudo.deleteMany({ where: { instituicaoId: id } }),
+                    prisma.usuario.delete({ where: { id } }),
+                ]);
+                res.status(200).json("Conta apagada.");
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");

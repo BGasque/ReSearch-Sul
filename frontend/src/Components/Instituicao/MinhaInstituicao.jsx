@@ -20,6 +20,8 @@ const MinhaInstituicao = () => {
     const [filtro, setFiltro] = useState('TODOS');
     // Mensagem que veio do formulário (ex.: "Evento enviado para análise")
     const [mensagem, setMensagem] = useState(location.state || null);
+    // Instituição nova só cadastra depois que o administrador verificar
+    const [verificada, setVerificada] = useState(true);
 
     async function carregar() {
         try {
@@ -36,6 +38,7 @@ const MinhaInstituicao = () => {
             return;
         }
         carregar();
+        api.get('/me', cabecalhoAuth()).then((r) => setVerificada(r.data.verificado)).catch(() => {});
     }, []);
 
     async function arquivar(conteudo) {
@@ -70,6 +73,13 @@ const MinhaInstituicao = () => {
             </section>
 
             <main className="mainInstituicao container">
+                {!verificada && (
+                    <p className="mensagem aviso-amarelo">
+                        Sua instituição está <strong>aguardando a verificação</strong> do administrador.
+                        Depois disso, você já pode cadastrar eventos e publicações.
+                    </p>
+                )}
+
                 {/* Contadores por situação */}
                 <section className="contadores">
                     {['PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO'].map((situacao) => (
