@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { ShieldCheck, Check, X, Pencil, Trash2, Eye, EyeOff, Archive, MessageSquareWarning, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox, BookOpen, History } from "lucide-react";
+import { ShieldCheck, Check, X, Pencil, Trash2, Eye, EyeOff, Archive, MessageSquareWarning, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox, BookOpen, History, Flag } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
@@ -124,6 +124,7 @@ const Moderacao = () => {
                         <Link to="/admin/usuarios" className="botao-amarelo botao-grande"><Users className="icon"/> Usuários e instituições</Link>
                         <Link to="/admin/tags" className="botao-amarelo botao-grande"><Hash className="icon"/> Gerenciar tags</Link>
                         <Link to="/admin/areas" className="botao-amarelo botao-grande"><BookOpen className="icon"/> Áreas</Link>
+                        <Link to="/admin/relatos" className="botao-amarelo botao-grande"><Flag className="icon"/> Problemas relatados</Link>
                     </div>
                 </div>
             </section>
@@ -141,6 +142,12 @@ const Moderacao = () => {
                 {resumo?.aguardando > 0 && (
                     <p className="mensagem aviso-amarelo">
                         {resumo.aguardando === 1 ? '1 instituição nova está' : `${resumo.aguardando} instituições novas estão`} aguardando verificação. <Link to="/admin/usuarios">Ver agora</Link>
+                    </p>
+                )}
+
+                {resumo?.relatos > 0 && (
+                    <p className="mensagem aviso-amarelo">
+                        {resumo.relatos === 1 ? '1 problema relatado está' : `${resumo.relatos} problemas relatados estão`} esperando você. <Link to="/admin/relatos">Ver agora</Link>
                     </p>
                 )}
 

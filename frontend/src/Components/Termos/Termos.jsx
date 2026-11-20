@@ -4,7 +4,7 @@ import Rodape from "../Rodape/Rodape.jsx";
 import "./Termos.css";
 
 // Data da última mudança nos textos (trocar sempre que mudar algo importante)
-const ATUALIZADO_EM = "19/11/2026";
+const ATUALIZADO_EM = "20/11/2026";
 
 // Contato do encarregado dos dados (LGPD art. 41)
 const EMAIL_CONTATO = "2023302463@aluno.riogrande.ifrs.edu.br";
@@ -122,6 +122,7 @@ const Termos = () => (
                             <tr><td>Dados do arquivo XML do Lattes (nome, áreas, artigos e trabalhos em eventos)</td><td>Só se você enviar o arquivo</td></tr>
                             <tr><td>Tags, áreas, estados e tipos de conteúdo de interesse</td><td>Só se você escolher</td></tr>
                             <tr><td>Eventos e publicações salvos nos favoritos</td><td>Só se você clicar na estrelinha</td></tr>
+                            <tr><td>Problemas que você reportar num conteúdo (motivo e detalhe)</td><td>Só se você usar o botão "Reportar problema"</td></tr>
                             <tr><td>Eventos e publicações cadastrados</td><td>Contas de instituição</td></tr>
                         </tbody>
                     </table>
@@ -134,6 +135,11 @@ const Termos = () => (
                         <li>
                             <strong>Nome, e-mail e senha:</strong> para criar a conta e deixar você entrar. A LGPD permite
                             isso porque é necessário para o serviço que você pediu (art. 7º, inciso V).
+                        </li>
+                        <li>
+                            <strong>Problemas reportados:</strong> para o administrador conferir e corrigir o conteúdo. O administrador
+                            vê seu nome e e-mail junto do relato, caso precise entender melhor. É necessário para o serviço
+                            (art. 7º, inciso V).
                         </li>
                         <li>
                             <strong>Lattes, interesses e favoritos:</strong> para mostrar no seu perfil e recomendar eventos.

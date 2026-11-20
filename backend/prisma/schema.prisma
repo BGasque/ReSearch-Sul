@@ -102,6 +102,7 @@ model Usuario {
   tagsInteresse    InteresseTag[]
   favoritos        Favorito[]
   decisoes         Decisao[] // decisões de moderação que este administrador tomou
+  relatos          Relato[] // problemas que esta pessoa comunicou (RF17)
 }
 
 // 2. Áreas do conhecimento (ex.: Computação, Saúde)
@@ -115,18 +116,18 @@ model Area {
 
 // 3. Conteúdos: eventos e publicações
 model Conteudo {
-  id            Int          @id @default(autoincrement())
-  tipo          TipoConteudo
-  titulo        String
-  descricao     String       @db.Text
-  estado        Estado
-  local         String? // cidade ou "Online" (eventos)
-  autoria       String? // autores ou revista (publicações)
-  dataInicio    DateTime? // início do evento
-  dataFim       DateTime? // fim do evento
-  prazo         DateTime? // prazo de inscrição ou de envio de artigos
-  linkOficial   String       @db.VarChar(500)
-  acesso        FormaAcesso? // gratuito ou pago (opcional, os dois tipos)
+  id          Int          @id @default(autoincrement())
+  tipo        TipoConteudo
+  titulo      String
+  descricao   String       @db.Text
+  estado      Estado
+  local       String? // cidade ou "Online" (eventos)
+  autoria     String? // autores ou revista (publicações)
+  dataInicio  DateTime? // início do evento
+  dataFim     DateTime? // fim do evento
+  prazo       DateTime? // prazo de inscrição ou de envio de artigos
+  linkOficial String       @db.VarChar(500)
+  acesso      FormaAcesso? // gratuito ou pago (opcional, os dois tipos)
 
   // Só de eventos
   modalidade  Modalidade? // presencial, online ou híbrido
@@ -138,21 +139,57 @@ model Conteudo {
   doi            String? // identificador DOI (ex.: 10.1590/abc123)
   issn           String? // identificador ISSN da revista (ex.: 1234-5678)
 
-  situacao      Situacao     @default(PENDENTE)
+  situacao      Situacao  @default(PENDENTE)
   instituicaoId Int
   publicadoEm   DateTime? // quando foi aprovado pela primeira vez (só assim um arquivado vira histórico público)
-  motivoRecusa  String?      @db.Text // explicação do administrador quando recusa
+  motivoRecusa  String?   @db.Text // explicação do administrador quando recusa
   moderadoEm    DateTime? // última vez que o administrador aprovou ou recusou
-  criadoEm      DateTime     @default(now())
-  atualizadoEm  DateTime     @updatedAt
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
 
   instituicao Usuario        @relation(fields: [instituicaoId], references: [id])
   areas       ConteudoArea[]
   tags        ConteudoTag[]
   favoritos   Favorito[]
   decisoes    Decisao[]
+  relatos     Relato[]
 
   @@index([instituicaoId])
+}
+
+// Motivos para comunicar um problema num conteúdo (RF17)
+enum MotivoRelato {
+  INFORMACAO_ERRADA
+  LINK_QUEBRADO
+  DUPLICADO
+  FORA_DO_TEMA
+  OUTRO
+}
+
+enum SituacaoRelato {
+  ABERTO // esperando o administrador olhar
+  RESOLVIDO // o administrador corrigiu
+  DESCARTADO // o administrador viu que não era problema
+}
+
+// Problema comunicado por um usuário sobre um conteúdo (RF17)
+model Relato {
+  id           Int            @id @default(autoincrement())
+  conteudoId   Int
+  usuarioId    Int
+  motivo       MotivoRelato
+  detalhe      String?        @db.Text
+  situacao     SituacaoRelato @default(ABERTO)
+  criadoEm     DateTime       @default(now())
+  resolvidoEm  DateTime?
+  resolvidoPor String? // nome do administrador que tratou
+
+  conteudo Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+  usuario  Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([conteudoId])
+  @@index([usuarioId])
+  @@index([situacao])
 }
 
 // Histórico da moderação: cada decisão do administrador sobre um conteúdo

@@ -6,6 +6,7 @@ import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import { formatarData, diasAte, textoContador } from "../../utils/auth.js";
 import { nomeModalidade, nomeTipoPublicacao, nomeAcesso } from "../../utils/rotulos.js";
+import ReportarProblema from "./ReportarProblema.jsx";
 import "./Detalhe.css";
 
 const NOMES_ESTADO = { PR: 'Paraná', SC: 'Santa Catarina', RS: 'Rio Grande do Sul' };
@@ -85,7 +86,7 @@ const Detalhe = () => {
             <main className="mainDetalhe container">
                 <div className="detalhe-principal">
                     {conteudo.arquivado && (
-                        <p className="faixa-aviso"><Info className="icon"/> Este conteúdo foi arquivado pela instituição e fica aqui apenas como histórico.</p>
+                        <p className="faixa-aviso"><Info className="icon"/> Este conteúdo foi arquivado e fica aqui apenas como histórico.</p>
                     )}
                     {!conteudo.arquivado && conteudo.encerrado && (
                         <p className="faixa-aviso"><Info className="icon"/> Este evento já terminou e fica aqui apenas como histórico.</p>
@@ -132,6 +133,8 @@ const Detalhe = () => {
                         {ehEvento ? 'A inscrição é feita no site oficial.' : 'O acesso e o envio de artigos são feitos no site oficial.'}
                         {' '}Atualizado em {formatarData(conteudo.atualizadoEm)}.
                     </p>
+
+                    <ReportarProblema conteudoId={conteudo.id}/>
                 </aside>
             </main>
 

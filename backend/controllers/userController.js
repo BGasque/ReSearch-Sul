@@ -285,6 +285,7 @@ Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.`,
                         tiposInteresse: true,
                         conteudos: { include: { areas: { include: { area: true } }, tags: { include: { tag: true } } } },
                         favoritos: { include: { conteudo: { select: { titulo: true } } } },
+                        relatos: { include: { conteudo: { select: { titulo: true } } } },
                     },
                 });
                 if (!usuario) return res.status(404).json("Usuário não encontrado.");
@@ -324,6 +325,13 @@ Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.`,
                         criadoEm: conteudo.criadoEm,
                         areas: conteudo.areas.map((item) => item.area.nome),
                         tags: conteudo.tags.map((item) => item.tag.nome),
+                    })),
+                    problemasComunicados: usuario.relatos.map((relato) => ({
+                        conteudo: relato.conteudo.titulo,
+                        motivo: relato.motivo,
+                        detalhe: relato.detalhe,
+                        situacao: relato.situacao,
+                        enviadoEm: relato.criadoEm,
                     })),
                 });
             } catch (error) {

@@ -23,5 +23,16 @@ export function nomeAcesso(acesso, tipo) {
     return null;
 }
 
+// Motivos para reportar um problema num conteúdo (RF17)
+export const MOTIVOS_RELATO = [
+    { valor: 'INFORMACAO_ERRADA', nome: 'Informação errada' },
+    { valor: 'LINK_QUEBRADO', nome: 'Link não abre' },
+    { valor: 'DUPLICADO', nome: 'Conteúdo repetido' },
+    { valor: 'FORA_DO_TEMA', nome: 'Não é acadêmico' },
+    { valor: 'OUTRO', nome: 'Outro problema' },
+];
+
+export const nomeMotivoRelato = (valor) => MOTIVOS_RELATO.find((item) => item.valor === valor)?.nome || valor;
+
 export const nomeModalidade = (valor) => MODALIDADES.find((item) => item.valor === valor)?.nome || null;
 export const nomeTipoPublicacao = (valor) => TIPOS_PUBLICACAO.find((item) => item.valor === valor)?.nome || null;

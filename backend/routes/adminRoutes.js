@@ -2,11 +2,13 @@ import express from 'express';
 import controller from '../controllers/adminController.js';
 import authUser from '../services/auth.js';
 import soAdmin from '../services/soAdmin.js';
+import relatos from '../controllers/relatoController.js';
 
 //  Rotas do administrador (precisa de login de administrador)
 const routes = express.Router();
 
 const adminController = controller();
+const relatoController = relatos();
 const protegido = [authUser, soAdmin];
 
 routes.get('/admin/resumo', protegido, adminController.resumo);
@@ -40,5 +42,9 @@ routes.post('/admin/areas/:id/juntar', protegido, adminController.juntarArea);
 routes.get('/admin/usuarios', protegido, adminController.listarUsuarios);
 routes.patch('/admin/usuarios/:id', protegido, adminController.editarUsuario);
 routes.delete('/admin/usuarios/:id', protegido, adminController.excluirUsuario);
+
+// Problemas comunicados pelos usuários (RF17)
+routes.get('/admin/relatos', protegido, relatoController.listar);
+routes.patch('/admin/relatos/:id', protegido, relatoController.tratar);
 
 export default routes;

@@ -85,11 +85,12 @@ function controller() {
         // Números do topo do painel
         async resumo(req, res) {
             try {
-                const [porSituacao, porTipoConta, tags, aguardando] = await Promise.all([
+                const [porSituacao, porTipoConta, tags, aguardando, relatos] = await Promise.all([
                     prisma.conteudo.groupBy({ by: ['situacao'], _count: true }),
                     prisma.usuario.groupBy({ by: ['tipo'], _count: true }),
                     prisma.tag.count({ where: { ativa: true } }),
                     prisma.usuario.count({ where: { tipo: 'INSTITUICAO', verificado: false } }),
+                    prisma.relato.count({ where: { situacao: 'ABERTO' } }),
                 ]);
 
                 const conteudos = Object.fromEntries(SITUACOES.map((s) => [s, 0]));
@@ -98,7 +99,7 @@ function controller() {
                 const contas = { PESSOA: 0, INSTITUICAO: 0, ADMIN: 0 };
                 porTipoConta.forEach((item) => { contas[item.tipo] = item._count; });
 
-                res.status(200).json({ conteudos, contas, tags, aguardando });
+                res.status(200).json({ conteudos, contas, tags, aguardando, relatos });
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");

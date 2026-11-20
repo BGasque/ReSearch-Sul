@@ -13,6 +13,7 @@ import Moderacao from './Components/Admin/Moderacao';
 import GerenciarTags from './Components/Admin/GerenciarTags';
 import GerenciarUsuarios from './Components/Admin/GerenciarUsuarios';
 import GerenciarAreas from './Components/Admin/GerenciarAreas';
+import GerenciarRelatos from './Components/Admin/GerenciarRelatos';
 import Termos from './Components/Termos/Termos';
 import EsqueciSenha from './Components/Acesso/EsqueciSenha';
 import RedefinirSenha from './Components/Acesso/RedefinirSenha';
@@ -66,6 +67,7 @@ function App() {
           <Route path="/admin/tags" element={<GerenciarTags/>}/>
           <Route path="/admin/usuarios" element={<GerenciarUsuarios/>}/>
           <Route path="/admin/areas" element={<GerenciarAreas/>}/>
+          <Route path="/admin/relatos" element={<GerenciarRelatos/>}/>
 
           <Route path="/admin/editar/:id" element={<FormConteudo modo="admin"/>}/>
         </Routes>

@@ -213,6 +213,109 @@
     font-size: 13px;
 }
 
+/* Reportar problema (RF17) */
+.reportar {
+    border-top: 2px dashed var(--linha);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reportar-botao {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--cinza);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+    align-self: flex-start;
+}
+
+.reportar-botao:hover {
+    color: var(--vermelho);
+}
+
+.reportar-entrar {
+    border-top: 2px dashed var(--linha);
+    padding-top: 14px;
+    color: var(--cinza);
+    font-size: 14px;
+}
+
+.reportar-caixa {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reportar-titulo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+}
+
+.reportar-titulo .icon {
+    color: var(--coral);
+}
+
+.reportar-opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reportar-opcao {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.reportar-opcao input {
+    accent-color: var(--azul);
+    width: 16px;
+    height: 16px;
+}
+
+.reportar-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.reportar-campo .rotulo {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.reportar-campo textarea {
+    resize: vertical;
+    font-family: var(--fonte-texto);
+}
+
+.reportar-acoes {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.reportar-acoes button {
+    padding: 8px 14px;
+    font-size: 14px;
+}
+
+.reportar .mensagem {
+    font-size: 14px;
+}
+
 @media (max-width: 900px) {
     .mainDetalhe {
         grid-template-columns: minmax(0, 1fr);
