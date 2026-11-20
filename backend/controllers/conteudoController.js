@@ -172,20 +172,27 @@ function controller() {
         // Recomendações: compara os interesses do usuário (tags, áreas e estados)
         // com os conteúdos aprovados que ainda não terminaram.
         // Pontos: cada tag em comum vale 3, cada área em comum vale 2 e o estado vale 1.
+        // Se a pessoa escolheu só eventos ou só publicações, o outro tipo não é recomendado.
         async recomendar(req, res) {
             try {
                 const { id } = req.user;
 
-                const [interesses, tagsUsuario, estadosUsuario] = await Promise.all([
+                const [interesses, tagsUsuario, estadosUsuario, tiposUsuario] = await Promise.all([
                     prisma.interesse.findMany({ where: { usuarioId: id }, include: { area: true } }),
                     prisma.interesseTag.findMany({ where: { usuarioId: id }, include: { tag: true } }),
                     prisma.interesseEstado.findMany({ where: { usuarioId: id } }),
+                    prisma.interesseTipo.findMany({ where: { usuarioId: id } }),
                 ]);
                 const areasInteresse = interesses.map((item) => item.area.nome);
                 const tagsInteresse = tagsUsuario.map((item) => item.tag.nome);
                 const estados = estadosUsuario.map((item) => item.estado);
+                const tipos = tiposUsuario.map((item) => item.tipo);
 
-                const encontrados = await prisma.conteudo.findMany({ where: { situacao: 'APROVADO' }, include: incluir });
+                // Nenhum tipo marcado = eventos e publicações
+                const filtroBanco = { situacao: 'APROVADO' };
+                if (tipos.length > 0) filtroBanco.tipo = { in: tipos };
+
+                const encontrados = await prisma.conteudo.findMany({ where: filtroBanco, include: incluir });
 
                 const hoje = new Date();
                 const abertos = encontrados

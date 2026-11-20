@@ -62,6 +62,7 @@ model Usuario {
   conteudos        Conteudo[] // conteúdos cadastrados (se for instituição)
   interesses       Interesse[]
   estadosInteresse InteresseEstado[]
+  tiposInteresse   InteresseTipo[]
   tagsInteresse    InteresseTag[]
   favoritos        Favorito[]
 }
@@ -136,6 +137,17 @@ model InteresseEstado {
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@id([usuarioId, estado])
+}
+
+// 6b. Tipos de interesse: se o usuário quer receber recomendações de eventos, de publicações ou dos dois
+// (nenhum marcado = os dois)
+model InteresseTipo {
+  usuarioId Int
+  tipo      TipoConteudo
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, tipo])
 }
 
 // 7. Tags: assuntos mais específicos (ex.: Extensão, Robótica, Feira de ciências), organizados em grupos

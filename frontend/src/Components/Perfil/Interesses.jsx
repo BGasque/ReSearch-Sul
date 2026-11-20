@@ -10,9 +10,14 @@ const ESTADOS = [
     { sigla: 'RS', nome: 'Rio Grande do Sul' },
 ];
 
+const TIPOS = [
+    { valor: 'EVENTO', nome: 'Eventos' },
+    { valor: 'PUBLICACAO', nome: 'Publicações' },
+];
+
 const MAX_TAGS = 15;
 
-// Seção "Meus interesses" do perfil: tags, áreas e estados usados nas recomendações.
+// Seção "Meus interesses" do perfil: tags, áreas, estados e tipos usados nas recomendações.
 // areasLattes = áreas que vieram do XML do Lattes (para sugerir)
 const Interesses = ({ areasLattes }) => {
     const [areas, setAreas] = useState([]);
@@ -20,6 +25,7 @@ const Interesses = ({ areasLattes }) => {
     const [tags, setTags] = useState([]);
     const [tagsEscolhidas, setTagsEscolhidas] = useState([]);
     const [estadosEscolhidos, setEstadosEscolhidos] = useState([]);
+    const [tiposEscolhidos, setTiposEscolhidos] = useState([]);
     const [mensagem, setMensagem] = useState({ texto: '', erro: false });
 
     useEffect(() => {
@@ -30,6 +36,7 @@ const Interesses = ({ areasLattes }) => {
             setAreasEscolhidas(resposta.data.areas);
             setTagsEscolhidas(resposta.data.tags);
             setEstadosEscolhidos(resposta.data.estados);
+            setTiposEscolhidos(resposta.data.tipos || []);
         });
     }, []);
 
@@ -51,7 +58,7 @@ const Interesses = ({ areasLattes }) => {
 
     async function salvar() {
         try {
-            const resposta = await api.put('/perfil/interesses', { areas: areasEscolhidas, tags: tagsEscolhidas, estados: estadosEscolhidos }, cabecalhoAuth());
+            const resposta = await api.put('/perfil/interesses', { areas: areasEscolhidas, tags: tagsEscolhidas, estados: estadosEscolhidos, tipos: tiposEscolhidos }, cabecalhoAuth());
             setMensagem({ texto: resposta.data, erro: false });
         } catch (error) {
             setMensagem({ texto: error.response?.data || 'Não foi possível salvar.', erro: true });
@@ -62,7 +69,7 @@ const Interesses = ({ areasLattes }) => {
         <section className="caixa caixa-perfil amarelo">
             <p className="sobrancelha"><span className="icone-quadrado"><Sparkles className="icon"/></span>Personalização</p>
             <h2>Meus interesses</h2>
-            <p className="explicacao">Escolha as tags, as áreas e os estados que você quer acompanhar. Eles são usados para recomendar eventos e publicações para você.</p>
+            <p className="explicacao">Escolha as tags, as áreas, os estados e o tipo de conteúdo que você quer acompanhar. Eles são usados para recomendar eventos e publicações para você.</p>
 
             <h3 className="rotulo">Minhas tags preferidas ({tagsEscolhidas.length}/{MAX_TAGS})</h3>
             <p className="explicacao">São o que mais pesa nas recomendações: cada tag em comum com um evento conta mais pontos.</p>
@@ -96,6 +103,17 @@ const Interesses = ({ areasLattes }) => {
                 ))}
             </div>
             <p className="explicacao">Se não marcar nenhum estado, você recebe recomendações dos três.</p>
+
+            <h3 className="rotulo">O que você quer receber</h3>
+            <div className="opcoes">
+                {TIPOS.map((tipo) => (
+                    <label key={tipo.valor} className={tiposEscolhidos.includes(tipo.valor) ? 'opcao marcada' : 'opcao'}>
+                        <input type="checkbox" checked={tiposEscolhidos.includes(tipo.valor)} onChange={() => alternar(tiposEscolhidos, setTiposEscolhidos, tipo.valor)}/>
+                        {tipo.nome}
+                    </label>
+                ))}
+            </div>
+            <p className="explicacao">Vale só para as recomendações. Se não marcar nenhum, você recebe eventos e publicações. O catálogo continua mostrando tudo.</p>
 
             <button type="button" className="botao-azul botao-salvar" onClick={salvar}>Salvar interesses</button>
 

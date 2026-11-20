@@ -4,7 +4,7 @@ import Rodape from "../Rodape/Rodape.jsx";
 import "./Termos.css";
 
 // Data da última mudança nos textos (trocar sempre que mudar algo importante)
-const ATUALIZADO_EM = "18/11/2026";
+const ATUALIZADO_EM = "19/11/2026";
 
 // Contato do encarregado dos dados (LGPD art. 41)
 const EMAIL_CONTATO = "2023302463@aluno.riogrande.ifrs.edu.br";
@@ -120,7 +120,7 @@ const Termos = () => (
                             <tr><td>Data em que você aceitou estes termos</td><td>No cadastro</td></tr>
                             <tr><td>Link do Currículo Lattes</td><td>Só se você quiser informar</td></tr>
                             <tr><td>Dados do arquivo XML do Lattes (nome, áreas, artigos e trabalhos em eventos)</td><td>Só se você enviar o arquivo</td></tr>
-                            <tr><td>Tags, áreas e estados de interesse</td><td>Só se você escolher</td></tr>
+                            <tr><td>Tags, áreas, estados e tipos de conteúdo de interesse</td><td>Só se você escolher</td></tr>
                             <tr><td>Eventos e publicações salvos nos favoritos</td><td>Só se você clicar na estrelinha</td></tr>
                             <tr><td>Eventos e publicações cadastrados</td><td>Contas de instituição</td></tr>
                         </tbody>
