@@ -318,6 +318,8 @@ Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.`,
                     conteudosCadastrados: usuario.conteudos.map((conteudo) => ({
                         titulo: conteudo.titulo,
                         tipo: conteudo.tipo,
+                        modalidade: conteudo.modalidade,
+                        tipoPublicacao: conteudo.tipoPublicacao,
                         situacao: conteudo.situacao,
                         criadoEm: conteudo.criadoEm,
                         areas: conteudo.areas.map((item) => item.area.nome),

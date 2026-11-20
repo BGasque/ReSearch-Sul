@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { ArrowLeft, ArrowUpRight, Building2, BookOpen, MapPin, CalendarDays, Clock, Tags, Info, Hash } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Building2, BookOpen, MapPin, CalendarDays, Clock, Tags, Info, Hash, Monitor, Users, Ticket, FileText, Fingerprint } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import { formatarData, diasAte, textoContador } from "../../utils/auth.js";
+import { nomeModalidade, nomeTipoPublicacao, nomeAcesso } from "../../utils/rotulos.js";
 import "./Detalhe.css";
 
 const NOMES_ESTADO = { PR: 'Paraná', SC: 'Santa Catarina', RS: 'Rio Grande do Sul' };
@@ -43,8 +44,13 @@ const Detalhe = () => {
     // Linhas da ficha: só aparecem as que têm informação
     const ficha = [
         { icone: Building2, rotulo: 'Instituição', valor: conteudo.instituicao },
+        { icone: FileText, rotulo: 'Tipo de publicação', valor: nomeTipoPublicacao(conteudo.tipoPublicacao) },
         { icone: BookOpen, rotulo: ehEvento ? 'Organização' : 'Autoria', valor: conteudo.autoria },
+        { icone: Monitor, rotulo: 'Modalidade', valor: nomeModalidade(conteudo.modalidade) },
         { icone: MapPin, rotulo: 'Local', valor: conteudo.local },
+        { icone: Users, rotulo: 'Público-alvo', valor: conteudo.publicoAlvo },
+        { icone: CalendarDays, rotulo: 'Ano', valor: conteudo.ano },
+        { icone: Ticket, rotulo: 'Acesso', valor: nomeAcesso(conteudo.acesso, conteudo.tipo) },
         {
             icone: CalendarDays,
             rotulo: 'Data',
@@ -52,6 +58,12 @@ const Detalhe = () => {
         },
         { icone: Tags, rotulo: 'Áreas', valor: conteudo.areas.join(', ') },
         { icone: Hash, rotulo: 'Tags', valor: conteudo.tags.map((tag) => `#${tag}`).join('  ') },
+        {
+            icone: Fingerprint,
+            rotulo: 'DOI',
+            valor: conteudo.doi && <a href={`https://doi.org/${conteudo.doi}`} target="_blank" rel="noreferrer">{conteudo.doi}</a>,
+        },
+        { icone: Fingerprint, rotulo: 'ISSN', valor: conteudo.issn },
     ].filter((linha) => linha.valor);
 
     return (

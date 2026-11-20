@@ -7,6 +7,7 @@ import Rodape from "../Rodape/Rodape.jsx";
 import Cartao from "../Cartao/Cartao.jsx";
 import SeletorTags from "../Tags/SeletorTags.jsx";
 import { cabecalhoAuth, usuarioLogado } from "../../utils/auth.js";
+import { MODALIDADES, TIPOS_PUBLICACAO } from "../../utils/rotulos.js";
 import "./Instituicao.css";
 
 const VAZIO = {
@@ -20,6 +21,13 @@ const VAZIO = {
     dataFim: '',
     prazo: '',
     linkOficial: '',
+    acesso: '',
+    modalidade: '',
+    publicoAlvo: '',
+    tipoPublicacao: '',
+    ano: '',
+    doi: '',
+    issn: '',
     areas: [],
     tags: [],
 };
@@ -86,6 +94,13 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
                     dataFim: paraCampo(data.dataFim),
                     prazo: paraCampo(data.prazo),
                     linkOficial: data.linkOficial,
+                    acesso: data.acesso || '',
+                    modalidade: data.modalidade || '',
+                    publicoAlvo: data.publicoAlvo || '',
+                    tipoPublicacao: data.tipoPublicacao || '',
+                    ano: data.ano ? String(data.ano) : '',
+                    doi: data.doi || '',
+                    issn: data.issn || '',
                     areas: data.areas.map((area) => area.id),
                     tags: data.tags.map((tag) => tag.id),
                 });
@@ -142,6 +157,10 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
         dataInicio: ehEvento && form.dataInicio ? `${form.dataInicio}T00:00:00.000Z` : null,
         dataFim: ehEvento && form.dataFim ? `${form.dataFim}T00:00:00.000Z` : null,
         prazo: form.prazo ? `${form.prazo}T00:00:00.000Z` : null,
+        modalidade: ehEvento ? form.modalidade || null : null,
+        acesso: form.acesso || null,
+        tipoPublicacao: ehEvento ? null : form.tipoPublicacao || null,
+        ano: ehEvento ? null : form.ano || null,
         instituicao: nomeInstituicao,
         areas: areas.filter((area) => form.areas.includes(area.id)).map((area) => area.nome),
         tags: tags.filter((tag) => form.tags.includes(tag.id)).map((tag) => tag.nome),
@@ -221,6 +240,42 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
                                     </label>
                                 )}
                             </div>
+
+                            <div className="duas-colunas">
+                                {ehEvento ? (
+                                    <label className="campo-rotulado">
+                                        <span className="rotulo">Modalidade *</span>
+                                        <select className="campo" value={form.modalidade} onChange={(e) => mudar('modalidade', e.target.value)}>
+                                            <option value="">Escolha</option>
+                                            {MODALIDADES.map((item) => <option key={item.valor} value={item.valor}>{item.nome}</option>)}
+                                        </select>
+                                    </label>
+                                ) : (
+                                    <label className="campo-rotulado">
+                                        <span className="rotulo">Tipo de publicação *</span>
+                                        <select className="campo" value={form.tipoPublicacao} onChange={(e) => mudar('tipoPublicacao', e.target.value)}>
+                                            <option value="">Escolha</option>
+                                            {TIPOS_PUBLICACAO.map((item) => <option key={item.valor} value={item.valor}>{item.nome}</option>)}
+                                        </select>
+                                    </label>
+                                )}
+
+                                <label className="campo-rotulado">
+                                    <span className="rotulo">Forma de acesso</span>
+                                    <select className="campo" value={form.acesso} onChange={(e) => mudar('acesso', e.target.value)}>
+                                        <option value="">Não informar</option>
+                                        <option value="GRATUITO">{ehEvento ? 'Gratuito' : 'Acesso aberto (gratuito)'}</option>
+                                        <option value="PAGO">{ehEvento ? 'Pago' : 'Acesso pago'}</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            {ehEvento && (
+                                <label className="campo-rotulado">
+                                    <span className="rotulo">Público-alvo</span>
+                                    <input className="campo" value={form.publicoAlvo} maxLength={150} onChange={(e) => mudar('publicoAlvo', e.target.value)} placeholder="Ex.: Estudantes do ensino médio e da graduação"/>
+                                </label>
+                            )}
                         </fieldset>
 
                         {/* 3. Datas */}
@@ -243,6 +298,12 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
                                     <span className="rotulo">{ehEvento ? 'Inscrições até' : 'Envio de artigos até'}</span>
                                     <input type="date" className="campo" value={form.prazo} onChange={(e) => mudar('prazo', e.target.value)}/>
                                 </label>
+                                {!ehEvento && (
+                                    <label className="campo-rotulado">
+                                        <span className="rotulo">Ano</span>
+                                        <input type="number" className="campo" value={form.ano} min={1900} max={new Date().getFullYear() + 2} onChange={(e) => mudar('ano', e.target.value)} placeholder="Ex.: 2026"/>
+                                    </label>
+                                )}
                             </div>
                         </fieldset>
 
@@ -271,12 +332,25 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
 
                         {/* 6. Link */}
                         <fieldset>
-                            <legend><span className="passo-num">6</span> Link oficial</legend>
+                            <legend><span className="passo-num">6</span> {ehEvento ? 'Link oficial' : 'Link oficial e identificadores'}</legend>
                             <label className="campo-rotulado">
                                 <span className="rotulo">Endereço do site oficial *</span>
                                 <input type="url" className="campo" value={form.linkOficial} maxLength={500} onChange={(e) => mudar('linkOficial', e.target.value)} placeholder="https://"/>
                             </label>
                             <p className="dica"><Info className="icon"/> É por esse link que as pessoas vão se inscrever ou enviar artigos.</p>
+
+                            {!ehEvento && (
+                                <div className="duas-colunas">
+                                    <label className="campo-rotulado">
+                                        <span className="rotulo">DOI (opcional)</span>
+                                        <input className="campo" value={form.doi} maxLength={250} onChange={(e) => mudar('doi', e.target.value)} placeholder="Ex.: 10.1590/abc123"/>
+                                    </label>
+                                    <label className="campo-rotulado">
+                                        <span className="rotulo">ISSN (opcional)</span>
+                                        <input className="campo" value={form.issn} maxLength={9} onChange={(e) => mudar('issn', e.target.value)} placeholder="Ex.: 1234-5678"/>
+                                    </label>
+                                </div>
+                            )}
                         </fieldset>
 
                         <div className="form-botoes">

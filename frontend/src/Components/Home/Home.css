@@ -532,3 +532,30 @@
     width: 14px;
     color: var(--tinta);
 }
+
+/* Painel "Mais filtros": modalidade, forma de acesso, período e prazo */
+.mainHome .painel-mais {
+    flex-basis: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 2px dashed var(--linha);
+}
+
+.mainHome .painel-mais .campo[type="date"] {
+    min-width: 170px;
+}
+
+.mainHome .painel-mais .painel-tags-dica {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    .mainHome .painel-mais label,
+    .mainHome .painel-mais .campo {
+        width: 100%;
+    }
+}

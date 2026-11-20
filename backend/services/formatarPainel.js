@@ -21,6 +21,13 @@ export function formatarPainel(conteudo) {
         dataFim: conteudo.dataFim,
         prazo: conteudo.prazo,
         linkOficial: conteudo.linkOficial,
+        acesso: conteudo.acesso,
+        modalidade: conteudo.modalidade,
+        publicoAlvo: conteudo.publicoAlvo,
+        tipoPublicacao: conteudo.tipoPublicacao,
+        ano: conteudo.ano,
+        doi: conteudo.doi,
+        issn: conteudo.issn,
         situacao: conteudo.situacao,
         publicado: conteudo.publicadoEm !== null, // já foi aprovado alguma vez
         motivoRecusa: conteudo.motivoRecusa,

@@ -9,11 +9,12 @@ import useFavoritos from "../../utils/useFavoritos.js";
 import Ilustracao from "./Ilustracao.jsx";
 import SeletorTags from "../Tags/SeletorTags.jsx";
 import { usuarioLogado } from "../../utils/auth.js";
+import { MODALIDADES } from "../../utils/rotulos.js";
 import "./Home.css"
 
 // Passos da seção "Como funciona"
 const PASSOS = [
-    { icone: Search, cor: 'azul', titulo: 'Encontre', texto: 'Busque por palavra ou filtre por tipo, estado e área do conhecimento.' },
+    { icone: Search, cor: 'azul', titulo: 'Encontre', texto: 'Busque por palavra ou filtre por tipo, estado, área, modalidade, período e prazo.' },
     { icone: UserPlus, cor: 'coral', titulo: 'Crie sua conta', texto: 'Associe seu Currículo Lattes e escolha as áreas que você quer acompanhar.' },
     { icone: Sparkles, cor: 'amarelo', titulo: 'Receba sugestões', texto: 'Veja eventos e publicações recomendados a partir dos seus interesses.' },
     { icone: ExternalLink, cor: 'verde', titulo: 'Participe', texto: 'Faça a inscrição ou envie seu artigo direto no site oficial.' },
@@ -38,6 +39,12 @@ const Home = () => {
     const [areaId, setAreaId] = useState('');
     const [esconderEncerrados, setEsconderEncerrados] = useState(false);
     const [instituicaoId, setInstituicaoId] = useState('');
+    const [modalidade, setModalidade] = useState('');
+    const [acesso, setAcesso] = useState('');
+    const [de, setDe] = useState('');
+    const [ate, setAte] = useState('');
+    const [prazoAberto, setPrazoAberto] = useState(false);
+    const [mostrarMais, setMostrarMais] = useState(false);
     // Tags escolhidas na busca (não precisam ser as mesmas do perfil)
     const [tagsEscolhidas, setTagsEscolhidas] = useState([]);
     const [mostrarTags, setMostrarTags] = useState(false);
@@ -65,8 +72,12 @@ const Home = () => {
 
     // Busca os conteúdos sempre que a busca ou um filtro muda
     useEffect(() => {
-        const params = { busca, tipo, estado, areaId, instituicaoId };
+        const params = { busca, tipo, estado, areaId, instituicaoId, modalidade, acesso };
         if (esconderEncerrados) params.esconderEncerrados = 'sim';
+        if (prazoAberto) params.prazoAberto = 'sim';
+        // Período só vai quando a data está completa e na ordem certa
+        if (de) params.de = de;
+        if (ate && (!de || ate >= de)) params.ate = ate;
         if (tagsEscolhidas.length > 0) params.tags = tagsEscolhidas.join(',');
 
         setCarregando(true);
@@ -77,7 +88,7 @@ const Home = () => {
             })
             .catch(() => setErro('Não foi possível carregar o catálogo. O servidor está ligado?'))
             .finally(() => setCarregando(false));
-    }, [busca, tipo, estado, areaId, instituicaoId, tagsEscolhidas, esconderEncerrados]);
+    }, [busca, tipo, estado, areaId, instituicaoId, tagsEscolhidas, esconderEncerrados, modalidade, acesso, de, ate, prazoAberto]);
 
     function pesquisar(e) {
         e.preventDefault();
@@ -93,9 +104,17 @@ const Home = () => {
         setInstituicaoId('');
         setTagsEscolhidas([]);
         setEsconderEncerrados(false);
+        setModalidade('');
+        setAcesso('');
+        setDe('');
+        setAte('');
+        setPrazoAberto(false);
     }
 
-    const temFiltro = busca || tipo || estado || areaId || instituicaoId || tagsEscolhidas.length > 0 || esconderEncerrados;
+    const temFiltro = busca || tipo || estado || areaId || instituicaoId || tagsEscolhidas.length > 0 || esconderEncerrados
+        || modalidade || acesso || de || ate || prazoAberto;
+    // Quantos filtros do painel "Mais filtros" estão em uso
+    const filtrosExtras = [modalidade, acesso, de || ate, prazoAberto].filter(Boolean).length;
 
     // Nomes das tags escolhidas (para mostrar e destacar nos cartões)
     const nomesTagsEscolhidas = tags.filter((tag) => tagsEscolhidas.includes(tag.id)).map((tag) => tag.nome);
@@ -203,12 +222,56 @@ const Home = () => {
                         {mostrarTags ? <ChevronUp className="icon"/> : <ChevronDown className="icon"/>}
                     </button>
 
+                    <button type="button" className={mostrarMais ? 'botao-tags aberto' : 'botao-tags'} onClick={() => setMostrarMais(!mostrarMais)} aria-expanded={mostrarMais}>
+                        <SlidersHorizontal className="icon"/> Mais filtros {filtrosExtras > 0 && <span className="contagem">{filtrosExtras}</span>}
+                        {mostrarMais ? <ChevronUp className="icon"/> : <ChevronDown className="icon"/>}
+                    </button>
+
                     <label className="caixa-marcar">
                         <input type="checkbox" checked={esconderEncerrados} onChange={(e) => setEsconderEncerrados(e.target.checked)}/>
                         Esconder encerrados
                     </label>
 
                     {temFiltro && <button type="button" className="limpar" onClick={limparFiltros}>Limpar filtros</button>}
+
+                    {/* Mais filtros: modalidade, forma de acesso, período e prazo */}
+                    {mostrarMais && (
+                        <div className="painel-mais">
+                            <label>
+                                <span className="rotulo">Modalidade (eventos)</span>
+                                <select className="campo" value={modalidade} onChange={(e) => setModalidade(e.target.value)}>
+                                    <option value="">Todas</option>
+                                    {MODALIDADES.map((item) => <option key={item.valor} value={item.valor}>{item.nome}</option>)}
+                                </select>
+                            </label>
+
+                            <label>
+                                <span className="rotulo">Forma de acesso</span>
+                                <select className="campo" value={acesso} onChange={(e) => setAcesso(e.target.value)}>
+                                    <option value="">Todas</option>
+                                    <option value="GRATUITO">Gratuito / acesso aberto</option>
+                                    <option value="PAGO">Pago</option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span className="rotulo">De</span>
+                                <input type="date" className="campo" value={de} max={ate || undefined} onChange={(e) => setDe(e.target.value)}/>
+                            </label>
+
+                            <label>
+                                <span className="rotulo">Até</span>
+                                <input type="date" className="campo" value={ate} min={de || undefined} onChange={(e) => setAte(e.target.value)}/>
+                            </label>
+
+                            <label className="caixa-marcar">
+                                <input type="checkbox" checked={prazoAberto} onChange={(e) => setPrazoAberto(e.target.checked)}/>
+                                Só com inscrições ou envio de artigos abertos
+                            </label>
+
+                            <p className="painel-tags-dica">No período aparecem os eventos que acontecem nesses dias e as publicações com prazo nesses dias.</p>
+                        </div>
+                    )}
 
                     {/* Painel de tags: basta o conteúdo ter UMA das tags escolhidas */}
                     {mostrarTags && (

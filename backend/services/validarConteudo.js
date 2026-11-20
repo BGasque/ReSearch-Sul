@@ -5,6 +5,9 @@ import prisma from './adapter.js';
 
 const TIPOS = ['EVENTO', 'PUBLICACAO'];
 const ESTADOS = ['PR', 'SC', 'RS'];
+const MODALIDADES = ['PRESENCIAL', 'ONLINE', 'HIBRIDO'];
+const ACESSOS = ['GRATUITO', 'PAGO'];
+const TIPOS_PUBLICACAO = ['REVISTA', 'EDICAO', 'CHAMADA', 'ARTIGO', 'ANAIS', 'LIVRO', 'OUTRA'];
 
 // Texto sem espaços nas pontas ('' se não for texto)
 function texto(valor) {
@@ -20,6 +23,20 @@ function data(valor) {
     return Number.isNaN(convertida.getTime()) ? undefined : convertida;
 }
 
+// DOI: aceita "10.1590/abc" ou o link "https://doi.org/10.1590/abc" e guarda só "10.1590/abc"
+function doiLimpo(valor) {
+    const limpo = texto(valor).replace(/^https?:\/\/(dx\.)?doi\.org\//i, '').replace(/^doi:\s*/i, '');
+    if (!limpo) return null;
+    return /^10\.\d{4,9}\/\S{1,200}$/.test(limpo) ? limpo : undefined;
+}
+
+// ISSN: 8 caracteres (o último pode ser X), guardado como 1234-567X
+function issnLimpo(valor) {
+    const limpo = texto(valor).toUpperCase().replace(/^ISSN\s*/, '').replace('-', '');
+    if (!limpo) return null;
+    return /^\d{7}[\dX]$/.test(limpo) ? `${limpo.slice(0, 4)}-${limpo.slice(4)}` : undefined;
+}
+
 // tagsAtuais: tags que o conteúdo já tinha (continuam valendo mesmo se o admin desativou)
 export default async function validarConteudo(corpo, tagsAtuais = []) {
     const tipo = texto(corpo.tipo);
@@ -29,12 +46,17 @@ export default async function validarConteudo(corpo, tagsAtuais = []) {
     const local = texto(corpo.local);
     const autoria = texto(corpo.autoria);
     const linkOficial = texto(corpo.linkOficial);
+    const acesso = texto(corpo.acesso);
+    const modalidade = texto(corpo.modalidade);
+    const publicoAlvo = texto(corpo.publicoAlvo);
+    const tipoPublicacao = texto(corpo.tipoPublicacao);
 
     if (!TIPOS.includes(tipo)) return { erro: "Escolha se é um evento ou uma publicação." };
     if (titulo.length < 5 || titulo.length > 150) return { erro: "O título precisa ter entre 5 e 150 caracteres." };
     if (descricao.length < 20 || descricao.length > 3000) return { erro: "A descrição precisa ter entre 20 e 3000 caracteres." };
     if (!ESTADOS.includes(estado)) return { erro: "Escolha o estado: PR, SC ou RS." };
     if (local.length > 150 || autoria.length > 150) return { erro: "Local e autoria podem ter no máximo 150 caracteres." };
+    if (acesso && !ACESSOS.includes(acesso)) return { erro: "Forma de acesso inválida. Use gratuito ou pago." };
 
     // O link oficial precisa ser um endereço de site de verdade (RNF10: fonte verificável)
     let urlValida = false;
@@ -53,13 +75,33 @@ export default async function validarConteudo(corpo, tagsAtuais = []) {
     const prazo = data(corpo.prazo);
     if ([dataInicio, dataFim, prazo].includes(undefined)) return { erro: "Alguma data está em um formato inválido." };
 
+    // Campos que só existem em publicações
+    let ano = null;
+    let doi = null;
+    let issn = null;
+
     if (tipo === 'EVENTO') {
+        if (!MODALIDADES.includes(modalidade)) return { erro: "Escolha a modalidade do evento: presencial, online ou híbrido." };
+        if (publicoAlvo.length > 150) return { erro: "O público-alvo pode ter no máximo 150 caracteres." };
         if (!dataInicio) return { erro: "Informe a data de início do evento." };
         if (!local) return { erro: "Informe o local do evento (cidade ou \"Online\")." };
         if (dataFim && dataFim < dataInicio) return { erro: "A data de fim não pode ser antes da data de início." };
         if (prazo && prazo > (dataFim || dataInicio)) return { erro: "O prazo de inscrição não pode ser depois do fim do evento." };
-    } else if (!autoria) {
-        return { erro: "Informe a autoria ou o nome da revista." };
+    } else {
+        if (!autoria) return { erro: "Informe a autoria ou o nome da revista." };
+        if (!TIPOS_PUBLICACAO.includes(tipoPublicacao)) return { erro: "Escolha o tipo de publicação." };
+
+        const anoTexto = texto(String(corpo.ano ?? ''));
+        if (anoTexto) {
+            ano = Number(anoTexto);
+            const limite = new Date().getUTCFullYear() + 2;
+            if (!Number.isInteger(ano) || ano < 1900 || ano > limite) return { erro: `O ano precisa estar entre 1900 e ${limite}.` };
+        }
+
+        doi = doiLimpo(corpo.doi);
+        if (doi === undefined) return { erro: "DOI inválido. Ele começa com 10. (ex.: 10.1590/abc123)." };
+        issn = issnLimpo(corpo.issn);
+        if (issn === undefined) return { erro: "ISSN inválido. Use o formato 1234-5678." };
     }
 
     // Áreas: pelo menos 1 e no máximo 4, e todas precisam existir
@@ -89,6 +131,14 @@ export default async function validarConteudo(corpo, tagsAtuais = []) {
             local: local || null,
             autoria: autoria || null,
             linkOficial,
+            acesso: acesso || null,
+            // Cada tipo guarda só os seus campos; os do outro tipo ficam vazios
+            modalidade: tipo === 'EVENTO' ? modalidade : null,
+            publicoAlvo: tipo === 'EVENTO' ? (publicoAlvo || null) : null,
+            tipoPublicacao: tipo === 'PUBLICACAO' ? tipoPublicacao : null,
+            ano,
+            doi,
+            issn,
             // Publicações não têm data de início e fim, só prazo
             dataInicio: tipo === 'EVENTO' ? dataInicio : null,
             dataFim: tipo === 'EVENTO' ? dataFim : null,

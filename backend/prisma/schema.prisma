@@ -20,6 +20,30 @@ enum TipoConteudo {
   PUBLICACAO
 }
 
+// Como o evento acontece (RF03 e RF04)
+enum Modalidade {
+  PRESENCIAL
+  ONLINE
+  HIBRIDO
+}
+
+// Forma de acesso (RF03): evento gratuito ou pago; publicação de acesso aberto ou pago
+enum FormaAcesso {
+  GRATUITO
+  PAGO
+}
+
+// Tipo de publicação (RF05 e RF14)
+enum TipoPublicacao {
+  REVISTA
+  EDICAO
+  CHAMADA
+  ARTIGO
+  ANAIS
+  LIVRO
+  OUTRA
+}
+
 // Estados da Região Sul
 enum Estado {
   PR
@@ -89,6 +113,18 @@ model Conteudo {
   dataFim       DateTime? // fim do evento
   prazo         DateTime? // prazo de inscrição ou de envio de artigos
   linkOficial   String       @db.VarChar(500)
+  acesso        FormaAcesso? // gratuito ou pago (opcional, os dois tipos)
+
+  // Só de eventos
+  modalidade  Modalidade? // presencial, online ou híbrido
+  publicoAlvo String? // ex.: "Estudantes do ensino médio e graduação"
+
+  // Só de publicações
+  tipoPublicacao TipoPublicacao? // revista, edição, chamada, artigo...
+  ano            Int? // ano da publicação ou da edição
+  doi            String? // identificador DOI (ex.: 10.1590/abc123)
+  issn           String? // identificador ISSN da revista (ex.: 1234-5678)
+
   situacao      Situacao     @default(PENDENTE)
   instituicaoId Int
   publicadoEm   DateTime? // quando foi aprovado pela primeira vez (só assim um arquivado vira histórico público)

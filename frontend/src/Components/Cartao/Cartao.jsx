@@ -1,6 +1,7 @@
 import { Link } from "react-router";
-import { CalendarDays, MapPin, Building2, BookOpen, ArrowRight, Clock, Sparkles, Star } from "lucide-react";
+import { CalendarDays, MapPin, Building2, BookOpen, ArrowRight, Clock, Sparkles, Star, Monitor, FileText } from "lucide-react";
 import { formatarData, diasAte, textoContador } from "../../utils/auth.js";
+import { nomeModalidade, nomeTipoPublicacao, nomeAcesso } from "../../utils/rotulos.js";
 import "./Cartao.css";
 
 const MAX_TAGS_NO_CARTAO = 5;
@@ -14,6 +15,12 @@ const Cartao = ({ conteudo, destacarTags = [], favorito = false, aoFavoritar }) 
     const ehEvento = conteudo.tipo === 'EVENTO';
     const dias = diasAte(conteudo.prazo);
     const contador = textoContador(dias);
+
+    // Linha curta com modalidade (eventos) ou tipo e ano (publicações), e a forma de acesso
+    const detalhes = (ehEvento
+        ? [nomeModalidade(conteudo.modalidade)]
+        : [nomeTipoPublicacao(conteudo.tipoPublicacao), conteudo.ano]
+    ).concat(nomeAcesso(conteudo.acesso, conteudo.tipo)).filter(Boolean).join(' · ');
 
     let classe = ehEvento ? 'cartao caixa evento' : 'cartao caixa publicacao';
     if (conteudo.encerrado) classe += ' encerrado';
@@ -51,6 +58,7 @@ const Cartao = ({ conteudo, destacarTags = [], favorito = false, aoFavoritar }) 
                     <li><Building2 className="icon"/>{conteudo.instituicao}</li>
                     {conteudo.local && <li><MapPin className="icon"/>{conteudo.local}</li>}
                     {conteudo.autoria && <li><BookOpen className="icon"/>{conteudo.autoria}</li>}
+                    {detalhes && <li>{ehEvento ? <Monitor className="icon"/> : <FileText className="icon"/>}{detalhes}</li>}
                     {conteudo.dataInicio && (
                         <li>
                             <CalendarDays className="icon"/>

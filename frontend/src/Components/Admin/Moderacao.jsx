@@ -5,6 +5,7 @@ import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import { cabecalhoAuth, usuarioLogado, formatarData } from "../../utils/auth.js";
+import { nomeModalidade, nomeTipoPublicacao, nomeAcesso } from "../../utils/rotulos.js";
 import { SITUACOES } from "../Instituicao/situacoes.js";
 import "../Instituicao/Instituicao.css";
 import "./Admin.css";
@@ -182,7 +183,14 @@ const Moderacao = () => {
                                     <div className="moderar-detalhes">
                                         <p className="moderar-descricao">{conteudo.descricao}</p>
                                         <dl className="moderar-ficha">
+                                            {conteudo.tipoPublicacao && <><dt>Tipo</dt><dd>{nomeTipoPublicacao(conteudo.tipoPublicacao)}</dd></>}
+                                            {conteudo.modalidade && <><dt>Modalidade</dt><dd>{nomeModalidade(conteudo.modalidade)}</dd></>}
                                             {conteudo.local && <><dt>Local</dt><dd>{conteudo.local}</dd></>}
+                                            {conteudo.publicoAlvo && <><dt>Público-alvo</dt><dd>{conteudo.publicoAlvo}</dd></>}
+                                            {conteudo.acesso && <><dt>Acesso</dt><dd>{nomeAcesso(conteudo.acesso, conteudo.tipo)}</dd></>}
+                                            {conteudo.ano && <><dt>Ano</dt><dd>{conteudo.ano}</dd></>}
+                                            {conteudo.doi && <><dt>DOI</dt><dd>{conteudo.doi}</dd></>}
+                                            {conteudo.issn && <><dt>ISSN</dt><dd>{conteudo.issn}</dd></>}
                                             {conteudo.autoria && <><dt>Autoria</dt><dd>{conteudo.autoria}</dd></>}
                                             {conteudo.dataInicio && <><dt>Data</dt><dd>{formatarData(conteudo.dataInicio)}{conteudo.dataFim && ` a ${formatarData(conteudo.dataFim)}`}</dd></>}
                                             {conteudo.prazo && <><dt>Prazo</dt><dd>{formatarData(conteudo.prazo)}</dd></>}

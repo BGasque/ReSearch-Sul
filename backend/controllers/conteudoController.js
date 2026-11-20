@@ -27,6 +27,13 @@ function formatarConteudo(conteudo, hoje) {
         dataFim: conteudo.dataFim,
         prazo: conteudo.prazo,
         linkOficial: conteudo.linkOficial,
+        acesso: conteudo.acesso,
+        modalidade: conteudo.modalidade,
+        publicoAlvo: conteudo.publicoAlvo,
+        tipoPublicacao: conteudo.tipoPublicacao,
+        ano: conteudo.ano,
+        doi: conteudo.doi,
+        issn: conteudo.issn,
         instituicao: conteudo.instituicao.nome,
         instituicaoId: conteudo.instituicao.id,
         areas: conteudo.areas.map((item) => item.area.nome),
@@ -42,6 +49,14 @@ function listaDeIds(valor) {
     return [...new Set(valor.split(',').map(Number))];
 }
 
+// Data do filtro de período (AAAA-MM-DD). null = não informada, undefined = inválida
+function dataDoFiltro(valor) {
+    if (!valor) return null;
+    if (typeof valor !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return undefined;
+    const convertida = new Date(`${valor}T00:00:00.000Z`);
+    return Number.isNaN(convertida.getTime()) ? undefined : convertida;
+}
+
 // Ids dos conteúdos que têm a palavra buscada, sem ligar para maiúsculas nem acentos
 // ("extensao" acha "Extensão"). unaccent() é um recurso do PostgreSQL que tira os acentos.
 async function idsDaBusca(busca) {
@@ -53,12 +68,15 @@ async function idsDaBusca(busca) {
         JOIN "Usuario" u ON u.id = c."instituicaoId"
         LEFT JOIN "ConteudoTag" ct ON ct."conteudoId" = c.id
         LEFT JOIN "Tag" t ON t.id = ct."tagId"
+        LEFT JOIN "ConteudoArea" ca ON ca."conteudoId" = c.id
+        LEFT JOIN "Area" a ON a.id = ca."areaId"
         WHERE unaccent(c.titulo) ILIKE unaccent(${padrao})
            OR unaccent(c.descricao) ILIKE unaccent(${padrao})
            OR unaccent(coalesce(c.autoria, '')) ILIKE unaccent(${padrao})
            OR unaccent(coalesce(c.local, '')) ILIKE unaccent(${padrao})
            OR unaccent(u.nome) ILIKE unaccent(${padrao})
-           OR unaccent(coalesce(t.nome, '')) ILIKE unaccent(${padrao})`;
+           OR unaccent(coalesce(t.nome, '')) ILIKE unaccent(${padrao})
+           OR unaccent(coalesce(a.nome, '')) ILIKE unaccent(${padrao})`;
     return linhas.map((linha) => linha.id);
 }
 
@@ -112,7 +130,7 @@ function controller() {
         // Catálogo público: só conteúdos aprovados, com busca e filtros
         async listarConteudos(req, res) {
             try {
-                const { tipo, estado, areaId, instituicaoId, esconderEncerrados } = req.query;
+                const { tipo, estado, areaId, instituicaoId, esconderEncerrados, modalidade, acesso, prazoAberto } = req.query;
                 const busca = typeof req.query.busca === 'string' ? req.query.busca.trim() : '';
                 const tags = listaDeIds(req.query.tags);
 
@@ -132,6 +150,21 @@ function controller() {
                 if (tags === null) {
                     return res.status(400).json("Tags inválidas.");
                 }
+                if (modalidade && !['PRESENCIAL', 'ONLINE', 'HIBRIDO'].includes(modalidade)) {
+                    return res.status(400).json("Modalidade inválida. Use PRESENCIAL, ONLINE ou HIBRIDO.");
+                }
+                if (acesso && !['GRATUITO', 'PAGO'].includes(acesso)) {
+                    return res.status(400).json("Forma de acesso inválida. Use GRATUITO ou PAGO.");
+                }
+                // Período: de tal dia até tal dia (os dois são opcionais)
+                const de = dataDoFiltro(req.query.de);
+                const ate = dataDoFiltro(req.query.ate);
+                if (de === undefined || ate === undefined) {
+                    return res.status(400).json("Data do período inválida.");
+                }
+                if (de && ate && de > ate) {
+                    return res.status(400).json("No período, a primeira data precisa vir antes da segunda.");
+                }
 
                 const filtros = { situacao: 'APROVADO' };
 
@@ -139,6 +172,9 @@ function controller() {
                 if (estado) filtros.estado = estado;
                 if (areaId) filtros.areas = { some: { areaId: parseInt(areaId) } };
                 if (instituicaoId) filtros.instituicaoId = parseInt(instituicaoId);
+                // Modalidade só existe em eventos, então filtrar por ela mostra só eventos
+                if (modalidade) filtros.modalidade = modalidade;
+                if (acesso) filtros.acesso = acesso;
 
                 // Tags escolhidas na busca: basta ter UMA delas (não precisam ser as do perfil)
                 if (tags.length > 0) filtros.tags = { some: { tagId: { in: tags } } };
@@ -156,6 +192,26 @@ function controller() {
 
                 if (esconderEncerrados === 'sim') {
                     lista = lista.filter((conteudo) => !conteudo.encerrado);
+                }
+
+                // Prazo de inscrição ou de envio de artigos ainda aberto (vale até o fim do dia do prazo)
+                if (prazoAberto === 'sim') {
+                    const inicioDeHoje = new Date(Date.UTC(hoje.getUTCFullYear(), hoje.getUTCMonth(), hoje.getUTCDate()));
+                    lista = lista.filter((conteudo) => conteudo.prazo && conteudo.prazo >= inicioDeHoje);
+                }
+
+                // Período: eventos que acontecem nesses dias; publicações com prazo nesses dias
+                if (de || ate) {
+                    lista = lista.filter((conteudo) => {
+                        if (conteudo.tipo === 'EVENTO') {
+                            const inicio = conteudo.dataInicio;
+                            const fim = conteudo.dataFim || conteudo.dataInicio;
+                            if (!inicio) return false;
+                            return (!ate || inicio <= ate) && (!de || fim >= de);
+                        }
+                        if (!conteudo.prazo) return false;
+                        return (!de || conteudo.prazo >= de) && (!ate || conteudo.prazo <= ate);
+                    });
                 }
 
                 // Os encerrados vão para o fim da lista; o resto fica em ordem de data
