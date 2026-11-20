@@ -138,6 +138,56 @@
     font-family: var(--fonte-texto);
 }
 
+.dica-motivo {
+    font-size: 13px;
+    color: var(--cinza);
+}
+
+/* Histórico da moderação (RF16) */
+.historico {
+    border-top: 2px dashed var(--linha);
+    padding-top: 12px;
+}
+
+.historico h4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 16px;
+    margin-bottom: 8px;
+}
+
+.historico h4 .icon {
+    color: var(--azul);
+}
+
+.historico ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 14px;
+}
+
+.historico li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+}
+
+.historico-data {
+    font-weight: 700;
+    color: var(--cinza);
+    white-space: nowrap;
+}
+
+.historico-vazio {
+    font-size: 14px;
+    color: var(--cinza);
+}
+
 /* ===== Gerenciar tags ===== */
 .nova-tag {
     padding: 22px 26px;

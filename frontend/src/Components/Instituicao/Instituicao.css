@@ -54,6 +54,7 @@
 .contador.verde { border-top-color: var(--verde); }
 .contador.coral { border-top-color: var(--coral); }
 .contador.cinza { border-top-color: var(--linha); }
+.contador.azul { border-top-color: var(--azul); }
 
 .mensagem.aviso-amarelo {
     border-left-color: var(--amarelo);
@@ -144,6 +145,7 @@
 .linha.verde { border-left-color: var(--verde); }
 .linha.coral { border-left-color: var(--coral); }
 .linha.cinza { border-left-color: var(--linha); }
+.linha.azul { border-left-color: var(--azul); }
 
 .linha-info {
     display: flex;
@@ -162,6 +164,7 @@
 .chip.situacao.verde { background-color: var(--verde); }
 .chip.situacao.coral { background-color: var(--coral); }
 .chip.situacao.cinza { background-color: var(--linha); color: var(--cinza); }
+.chip.situacao.azul { background-color: var(--azul); color: var(--branco); }
 
 .linha h3 {
     font-size: 21px;

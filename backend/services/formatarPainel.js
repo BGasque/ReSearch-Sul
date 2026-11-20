@@ -6,6 +6,8 @@ export const incluirPainel = {
     areas: { include: { area: true } },
     tags: { include: { tag: true } },
     instituicao: { select: { id: true, nome: true, email: true } },
+    // Histórico da moderação, do mais novo para o mais antigo (RF16)
+    decisoes: { orderBy: { criadoEm: 'desc' } },
 };
 
 export function formatarPainel(conteudo) {
@@ -37,5 +39,18 @@ export function formatarPainel(conteudo) {
         tags: conteudo.tags.map((item) => ({ id: item.tag.id, nome: item.tag.nome })),
         criadoEm: conteudo.criadoEm,
         atualizadoEm: conteudo.atualizadoEm,
+        historico: (conteudo.decisoes || []).map((decisao) => ({
+            id: decisao.id,
+            acao: decisao.acao,
+            motivo: decisao.motivo,
+            admin: decisao.adminNome,
+            criadoEm: decisao.criadoEm,
+        })),
     };
+}
+
+// Para a instituição: o mesmo formato, mas sem o nome de qual administrador decidiu
+export function formatarParaInstituicao(conteudo) {
+    const formatado = formatarPainel(conteudo);
+    return { ...formatado, historico: formatado.historico.map(({ admin, ...resto }) => resto) };
 }

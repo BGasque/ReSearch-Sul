@@ -16,6 +16,9 @@ routes.get('/admin/conteudos', protegido, adminController.listar);
 routes.get('/admin/conteudos/:id', protegido, adminController.ver);
 routes.patch('/admin/conteudos/:id/aprovar', protegido, adminController.aprovar);
 routes.patch('/admin/conteudos/:id/recusar', protegido, adminController.recusar);
+routes.patch('/admin/conteudos/:id/correcao', protegido, adminController.pedirCorrecao);
+routes.patch('/admin/conteudos/:id/ocultar', protegido, adminController.ocultar);
+routes.patch('/admin/conteudos/:id/arquivar', protegido, adminController.arquivar);
 routes.put('/admin/conteudos/:id', protegido, adminController.editar);
 routes.delete('/admin/conteudos/:id', protegido, adminController.excluir);
 

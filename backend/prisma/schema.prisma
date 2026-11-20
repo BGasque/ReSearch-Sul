@@ -56,7 +56,19 @@ enum Situacao {
   PENDENTE // esperando o administrador avaliar
   APROVADO
   RECUSADO
-  ARQUIVADO // retirado do site pela instituição
+  ARQUIVADO // retirado do site (pela instituição ou pelo administrador)
+  CORRECAO // o administrador pediu uma correção; a instituição edita e envia de novo
+  OCULTO // escondido pelo administrador (não aparece para ninguém de fora)
+}
+
+// O que o administrador decidiu sobre um conteúdo (RF16: registro da decisão)
+enum AcaoModeracao {
+  APROVOU
+  RECUSOU
+  PEDIU_CORRECAO
+  EDITOU
+  OCULTOU
+  ARQUIVOU
 }
 
 // ---------- Tabelas ----------
@@ -89,6 +101,7 @@ model Usuario {
   tiposInteresse   InteresseTipo[]
   tagsInteresse    InteresseTag[]
   favoritos        Favorito[]
+  decisoes         Decisao[] // decisões de moderação que este administrador tomou
 }
 
 // 2. Áreas do conhecimento (ex.: Computação, Saúde)
@@ -137,8 +150,26 @@ model Conteudo {
   areas       ConteudoArea[]
   tags        ConteudoTag[]
   favoritos   Favorito[]
+  decisoes    Decisao[]
 
   @@index([instituicaoId])
+}
+
+// Histórico da moderação: cada decisão do administrador sobre um conteúdo
+model Decisao {
+  id         Int           @id @default(autoincrement())
+  conteudoId Int
+  adminId    Int? // quem decidiu (fica vazio se a conta do admin for apagada)
+  adminNome  String // nome do admin no momento da decisão (para o registro não se perder)
+  acao       AcaoModeracao
+  motivo     String?       @db.Text
+  criadoEm   DateTime      @default(now())
+
+  conteudo Conteudo @relation(fields: [conteudoId], references: [id], onDelete: Cascade)
+  admin    Usuario? @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([conteudoId])
+  @@index([adminId])
 }
 
 // 4. Áreas de cada conteúdo (N para N: um conteúdo pode ter várias áreas)

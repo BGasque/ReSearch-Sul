@@ -8,7 +8,9 @@ import { cabecalhoAuth, usuarioLogado, formatarData } from "../../utils/auth.js"
 import { SITUACOES } from "./situacoes.js";
 import "./Instituicao.css";
 
-const FILTROS = ['TODOS', 'PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO'];
+const FILTROS = ['TODOS', 'PENDENTE', 'CORRECAO', 'APROVADO', 'RECUSADO', 'OCULTO', 'ARQUIVADO'];
+// Situações em que o administrador deixou uma mensagem para a instituição
+const COM_MENSAGEM = ['RECUSADO', 'CORRECAO', 'OCULTO', 'ARQUIVADO'];
 
 // Área da instituição: lista dos próprios eventos e publicações, com a situação de cada um
 const MinhaInstituicao = () => {
@@ -73,6 +75,12 @@ const MinhaInstituicao = () => {
             </section>
 
             <main className="mainInstituicao container">
+                {contar('CORRECAO') > 0 && (
+                    <p className="mensagem aviso-amarelo">
+                        {contar('CORRECAO') === 1 ? '1 conteúdo precisa' : `${contar('CORRECAO')} conteúdos precisam`} de <strong>correção</strong>. Veja a mensagem do administrador, edite e envie de novo.
+                    </p>
+                )}
+
                 {!verificada && (
                     <p className="mensagem aviso-amarelo">
                         Sua instituição está <strong>aguardando a verificação</strong> do administrador.
@@ -147,8 +155,8 @@ const MinhaInstituicao = () => {
                                         <span>Atualizado em {formatarData(conteudo.atualizadoEm)}</span>
                                     </p>
                                     <p className="linha-explicacao">{situacao.explicacao}</p>
-                                    {conteudo.situacao === 'RECUSADO' && conteudo.motivoRecusa && (
-                                        <p className="motivo-recusa"><strong>Motivo do administrador:</strong> {conteudo.motivoRecusa}</p>
+                                    {COM_MENSAGEM.includes(conteudo.situacao) && conteudo.motivoRecusa && (
+                                        <p className="motivo-recusa"><strong>Mensagem do administrador:</strong> {conteudo.motivoRecusa}</p>
                                     )}
                                 </div>
 
@@ -157,7 +165,7 @@ const MinhaInstituicao = () => {
                                         <Link to={`/conteudo/${conteudo.id}`} className="botao-contorno"><Eye className="icon"/> Ver</Link>
                                     )}
                                     <Link to={`/instituicao/editar/${conteudo.id}`} className="botao-contorno"><Pencil className="icon"/> Editar</Link>
-                                    {conteudo.situacao !== 'ARQUIVADO' && (
+                                    {conteudo.situacao !== 'ARQUIVADO' && conteudo.situacao !== 'OCULTO' && (
                                         <button type="button" className="botao-contorno perigo" onClick={() => arquivar(conteudo)}><Archive className="icon"/> Arquivar</button>
                                     )}
                                 </div>

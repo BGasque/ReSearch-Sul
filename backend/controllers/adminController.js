@@ -5,7 +5,7 @@ import { incluirPainel, formatarPainel } from '../services/formatarPainel.js';
 // Área do administrador (moderação, CU14, e taxonomias, CU16).
 // O administrador vê os conteúdos de TODAS as instituições e pode aprovar, recusar, editar e excluir.
 
-const SITUACOES = ['PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO'];
+const SITUACOES = ['PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO', 'CORRECAO', 'OCULTO'];
 const TIPOS_CONTA = ['PESSOA', 'INSTITUICAO', 'ADMIN'];
 
 // Campos da conta que o administrador vê (nunca a senha)
@@ -30,6 +30,48 @@ async function buscarConteudo(idTexto) {
 
 function texto(valor) {
     return typeof valor === 'string' ? valor.trim() : '';
+}
+
+// Registro da decisão (RF16): quem decidiu, o quê, por quê e quando
+function registrar(req, conteudoId, acao, motivo = null) {
+    return prisma.decisao.create({
+        data: { conteudoId, adminId: req.user.id, adminNome: req.user.nome, acao, motivo },
+    });
+}
+
+// Ações que mudam a situação e pedem uma explicação para a instituição
+const MUDANCAS = {
+    correcao: { situacao: 'CORRECAO', acao: 'PEDIU_CORRECAO', motivoObrigatorio: true, jaEsta: "Já foi pedida uma correção para este conteúdo.", pedido: "Explique o que precisa ser corrigido (entre 10 e 1000 caracteres)." },
+    ocultar: { situacao: 'OCULTO', acao: 'OCULTOU', motivoObrigatorio: true, jaEsta: "Este conteúdo já está oculto.", pedido: "Explique por que está ocultando (entre 10 e 1000 caracteres)." },
+    arquivar: { situacao: 'ARQUIVADO', acao: 'ARQUIVOU', motivoObrigatorio: false, jaEsta: "Este conteúdo já está arquivado.", pedido: "O motivo pode ter no máximo 1000 caracteres." },
+};
+
+// Monta a função de cada ação acima (pedir correção, ocultar, arquivar)
+function mudarSituacao(tipo) {
+    const regra = MUDANCAS[tipo];
+    return async (req, res) => {
+        try {
+            const atual = await buscarConteudo(req.params.id);
+            if (!atual) return res.status(404).json("Conteúdo não encontrado.");
+            if (atual.situacao === regra.situacao) return res.status(400).json(regra.jaEsta);
+
+            const motivo = texto(req.body?.motivo);
+            const tamanhoErrado = regra.motivoObrigatorio ? (motivo.length < 10 || motivo.length > 1000) : motivo.length > 1000;
+            if (tamanhoErrado) return res.status(400).json(regra.pedido);
+
+            await prisma.$transaction([
+                prisma.conteudo.update({
+                    where: { id: atual.id },
+                    data: { situacao: regra.situacao, motivoRecusa: motivo || null, moderadoEm: new Date() },
+                }),
+                registrar(req, atual.id, regra.acao, motivo || null),
+            ]);
+            res.status(200).json(formatarPainel(await buscarConteudo(atual.id)));
+        } catch (error) {
+            console.log(error.message);
+            res.status(500).json("Erro no servidor.");
+        }
+    };
 }
 
 function controller() {
@@ -105,17 +147,19 @@ function controller() {
                 if (atual.situacao === 'APROVADO') return res.status(400).json("Este conteúdo já está publicado.");
 
                 const agora = new Date();
-                const conteudo = await prisma.conteudo.update({
-                    where: { id: atual.id },
-                    data: {
-                        situacao: 'APROVADO',
-                        motivoRecusa: null,
-                        moderadoEm: agora,
-                        publicadoEm: atual.publicadoEm || agora,
-                    },
-                    include: incluirPainel,
-                });
-                res.status(200).json(formatarPainel(conteudo));
+                await prisma.$transaction([
+                    prisma.conteudo.update({
+                        where: { id: atual.id },
+                        data: {
+                            situacao: 'APROVADO',
+                            motivoRecusa: null,
+                            moderadoEm: agora,
+                            publicadoEm: atual.publicadoEm || agora,
+                        },
+                    }),
+                    registrar(req, atual.id, 'APROVOU'),
+                ]);
+                res.status(200).json(formatarPainel(await buscarConteudo(atual.id)));
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");
@@ -133,12 +177,16 @@ function controller() {
                     return res.status(400).json("Explique o motivo da recusa (entre 10 e 1000 caracteres).");
                 }
 
-                const conteudo = await prisma.conteudo.update({
-                    where: { id: atual.id },
-                    data: { situacao: 'RECUSADO', motivoRecusa: motivo, moderadoEm: new Date() },
-                    include: incluirPainel,
-                });
-                res.status(200).json(formatarPainel(conteudo));
+                if (atual.situacao === 'RECUSADO') return res.status(400).json("Este conteúdo já está recusado.");
+
+                await prisma.$transaction([
+                    prisma.conteudo.update({
+                        where: { id: atual.id },
+                        data: { situacao: 'RECUSADO', motivoRecusa: motivo, moderadoEm: new Date() },
+                    }),
+                    registrar(req, atual.id, 'RECUSOU', motivo),
+                ]);
+                res.status(200).json(formatarPainel(await buscarConteudo(atual.id)));
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");
@@ -154,7 +202,7 @@ function controller() {
                 const validado = await validarConteudo(req.body, atual.tags.map((item) => item.tag.id));
                 if (validado.erro) return res.status(400).json(validado.erro);
 
-                const [, , conteudo] = await prisma.$transaction([
+                await prisma.$transaction([
                     prisma.conteudoArea.deleteMany({ where: { conteudoId: atual.id } }),
                     prisma.conteudoTag.deleteMany({ where: { conteudoId: atual.id } }),
                     prisma.conteudo.update({
@@ -164,17 +212,26 @@ function controller() {
                             areas: { create: validado.areas.map((areaId) => ({ areaId })) },
                             tags: { create: validado.tags.map((tagId) => ({ tagId })) },
                         },
-                        include: incluirPainel,
                     }),
+                    registrar(req, atual.id, 'EDITOU'),
                 ]);
-                res.status(200).json(formatarPainel(conteudo));
+                res.status(200).json(formatarPainel(await buscarConteudo(atual.id)));
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");
             }
         },
 
-        // Excluir de vez (áreas e tags do conteúdo são apagadas junto)
+        // Pedir correção: sai do catálogo até a instituição corrigir e enviar de novo
+        pedirCorrecao: mudarSituacao('correcao'),
+
+        // Ocultar: some do site para todo mundo (nem como histórico)
+        ocultar: mudarSituacao('ocultar'),
+
+        // Arquivar: sai do catálogo; se já foi publicado, a página fica como histórico
+        arquivar: mudarSituacao('arquivar'),
+
+        // Excluir de vez (áreas, tags e histórico do conteúdo são apagados junto)
         async excluir(req, res) {
             try {
                 const atual = await buscarConteudo(req.params.id);

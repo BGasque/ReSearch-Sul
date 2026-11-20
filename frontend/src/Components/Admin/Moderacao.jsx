@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { ShieldCheck, Check, X, Pencil, Trash2, Eye, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox, BookOpen } from "lucide-react";
+import { ShieldCheck, Check, X, Pencil, Trash2, Eye, EyeOff, Archive, MessageSquareWarning, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox, BookOpen, History } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
 import { cabecalhoAuth, usuarioLogado, formatarData } from "../../utils/auth.js";
 import { nomeModalidade, nomeTipoPublicacao, nomeAcesso } from "../../utils/rotulos.js";
-import { SITUACOES } from "../Instituicao/situacoes.js";
+import { SITUACOES, NOMES_ACAO } from "../Instituicao/situacoes.js";
 import "../Instituicao/Instituicao.css";
 import "./Admin.css";
 
-const ABAS = ['PENDENTE', 'APROVADO', 'RECUSADO', 'ARQUIVADO', 'TODOS'];
+const ABAS = ['PENDENTE', 'CORRECAO', 'APROVADO', 'RECUSADO', 'OCULTO', 'ARQUIVADO', 'TODOS'];
+
+// Ações que pedem uma mensagem para a instituição (RF16)
+const ACOES = {
+    recusar: { situacao: 'RECUSADO', nome: 'Recusar', icone: X, obrigatorio: true, pergunta: 'Por que está recusando? (a instituição vai ler)', exemplo: 'Ex.: O link oficial não abre. Confira o endereço e envie de novo.', confirmar: 'Confirmar recusa', sucesso: 'foi recusado. A instituição vai ver o motivo.' },
+    correcao: { situacao: 'CORRECAO', nome: 'Pedir correção', icone: MessageSquareWarning, obrigatorio: true, pergunta: 'O que precisa ser corrigido? (a instituição vai ler)', exemplo: 'Ex.: Falta a data de término do evento.', confirmar: 'Pedir correção', sucesso: 'voltou para a instituição corrigir.' },
+    ocultar: { situacao: 'OCULTO', nome: 'Ocultar', icone: EyeOff, obrigatorio: true, pergunta: 'Por que está ocultando? (a instituição vai ler)', exemplo: 'Ex.: O conteúdo tem informações erradas e está em revisão.', confirmar: 'Confirmar ocultar', sucesso: 'foi ocultado e não aparece mais no site.' },
+    arquivar: { situacao: 'ARQUIVADO', nome: 'Arquivar', icone: Archive, obrigatorio: false, pergunta: 'Motivo (opcional, a instituição vai ler)', exemplo: 'Ex.: O evento já aconteceu.', confirmar: 'Confirmar arquivar', sucesso: 'foi arquivado e saiu do catálogo.' },
+};
+const ROTAS = { recusar: 'recusar', correcao: 'correcao', ocultar: 'ocultar', arquivar: 'arquivar' };
 
 // Painel de moderação do administrador: conteúdos de todas as instituições
 const Moderacao = () => {
@@ -22,7 +31,7 @@ const Moderacao = () => {
     const [conteudos, setConteudos] = useState(null);
     const [aba, setAba] = useState('PENDENTE');
     const [aberto, setAberto] = useState(null); // id do conteúdo com os detalhes abertos
-    const [recusando, setRecusando] = useState(null); // id do conteúdo que está sendo recusado
+    const [acaoAberta, setAcaoAberta] = useState(null); // { id, tipo } da ação que está pedindo a mensagem
     const [motivo, setMotivo] = useState('');
     const [mensagem, setMensagem] = useState(location.state || null);
 
@@ -51,17 +60,17 @@ const Moderacao = () => {
     function trocarAba(novaAba) {
         setAba(novaAba);
         setAberto(null);
-        setRecusando(null);
+        setAcaoAberta(null);
         setConteudos(null);
         carregar(novaAba);
     }
 
-    // Faz uma ação (aprovar, recusar, excluir) e recarrega a lista
+    // Faz uma ação (aprovar, recusar, ocultar, excluir...) e recarrega a lista
     async function agir(acao, textoSucesso) {
         try {
             await acao();
             setMensagem({ texto: textoSucesso });
-            setRecusando(null);
+            setAcaoAberta(null);
             setMotivo('');
             carregar();
         } catch (error) {
@@ -74,8 +83,15 @@ const Moderacao = () => {
         agir(() => api.patch(`/admin/conteudos/${conteudo.id}/aprovar`, {}, cabecalhoAuth()), `"${conteudo.titulo}" foi aprovado e já aparece no catálogo.`);
     }
 
-    function recusar(conteudo) {
-        agir(() => api.patch(`/admin/conteudos/${conteudo.id}/recusar`, { motivo }, cabecalhoAuth()), `"${conteudo.titulo}" foi recusado. A instituição vai ver o motivo.`);
+    // Recusar, pedir correção, ocultar ou arquivar (com a mensagem escrita)
+    function confirmarAcao(conteudo, tipo) {
+        agir(() => api.patch(`/admin/conteudos/${conteudo.id}/${ROTAS[tipo]}`, { motivo }, cabecalhoAuth()), `"${conteudo.titulo}" ${ACOES[tipo].sucesso}`);
+    }
+
+    function abrirAcao(conteudo, tipo) {
+        setAcaoAberta({ id: conteudo.id, tipo });
+        setMotivo('');
+        setAberto(conteudo.id);
     }
 
     function excluir(conteudo) {
@@ -200,33 +216,59 @@ const Moderacao = () => {
                                             <dd><a href={conteudo.linkOficial} target="_blank" rel="noreferrer">{conteudo.linkOficial} <ExternalLink className="icon"/></a></dd>
                                             <dt>Contato</dt><dd>{conteudo.instituicao.email}</dd>
                                         </dl>
-                                        {conteudo.motivoRecusa && <p className="motivo-recusa"><strong>Motivo da recusa:</strong> {conteudo.motivoRecusa}</p>}
-                                    </div>
-                                )}
+                                        {conteudo.motivoRecusa && <p className="motivo-recusa"><strong>Mensagem do administrador:</strong> {conteudo.motivoRecusa}</p>}
 
-                                {/* Caixa para escrever o motivo da recusa */}
-                                {recusando === conteudo.id && (
-                                    <div className="caixa-recusa">
-                                        <label className="campo-rotulado">
-                                            <span className="rotulo">Por que está recusando? (a instituição vai ler)</span>
-                                            <textarea className="campo" rows={3} value={motivo} maxLength={1000} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: O link oficial não abre. Confira o endereço e envie de novo."/>
-                                        </label>
-                                        <div className="moderar-acoes">
-                                            <button type="button" className="botao botao-pequeno recusar" onClick={() => recusar(conteudo)} disabled={motivo.trim().length < 10}>
-                                                <X className="icon"/> Confirmar recusa
-                                            </button>
-                                            <button type="button" className="botao-contorno botao-pequeno" onClick={() => { setRecusando(null); setMotivo(''); }}>Cancelar</button>
+                                        {/* Registro de cada decisão (RF16) */}
+                                        <div className="historico">
+                                            <h4><History className="icon"/> Histórico da moderação</h4>
+                                            {conteudo.historico.length === 0 ? (
+                                                <p className="historico-vazio">Nenhuma decisão ainda.</p>
+                                            ) : (
+                                                <ol>
+                                                    {conteudo.historico.map((decisao) => (
+                                                        <li key={decisao.id}>
+                                                            <span className="historico-data">{new Date(decisao.criadoEm).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                            <span><strong>{decisao.admin}</strong> {NOMES_ACAO[decisao.acao].toLowerCase()}{decisao.motivo && <>: “{decisao.motivo}”</>}</span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            )}
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Caixa para escrever a mensagem da ação escolhida */}
+                                {acaoAberta?.id === conteudo.id && (() => {
+                                    const acao = ACOES[acaoAberta.tipo];
+                                    const Icone = acao.icone;
+                                    return (
+                                        <div className="caixa-recusa">
+                                            <label className="campo-rotulado">
+                                                <span className="rotulo">{acao.pergunta}</span>
+                                                <textarea className="campo" rows={3} value={motivo} maxLength={1000} onChange={(e) => setMotivo(e.target.value)} placeholder={acao.exemplo}/>
+                                            </label>
+                                            {acao.obrigatorio && <p className="dica-motivo">Escreva pelo menos 10 caracteres.</p>}
+                                            <div className="moderar-acoes">
+                                                <button type="button" className="botao botao-pequeno recusar" onClick={() => confirmarAcao(conteudo, acaoAberta.tipo)} disabled={acao.obrigatorio && motivo.trim().length < 10}>
+                                                    <Icone className="icon"/> {acao.confirmar}
+                                                </button>
+                                                <button type="button" className="botao-contorno botao-pequeno" onClick={() => { setAcaoAberta(null); setMotivo(''); }}>Cancelar</button>
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 <div className="moderar-acoes">
                                     {conteudo.situacao !== 'APROVADO' && (
                                         <button type="button" className="botao botao-pequeno aprovar" onClick={() => aprovar(conteudo)}><Check className="icon"/> Aprovar</button>
                                     )}
-                                    {conteudo.situacao !== 'RECUSADO' && recusando !== conteudo.id && (
-                                        <button type="button" className="botao-contorno botao-pequeno" onClick={() => { setRecusando(conteudo.id); setMotivo(''); setAberto(conteudo.id); }}><X className="icon"/> Recusar</button>
-                                    )}
+                                    {Object.entries(ACOES).map(([tipo, acao]) => {
+                                        if (conteudo.situacao === acao.situacao || acaoAberta?.id === conteudo.id) return null;
+                                        const Icone = acao.icone;
+                                        return (
+                                            <button key={tipo} type="button" className="botao-contorno botao-pequeno" onClick={() => abrirAcao(conteudo, tipo)}><Icone className="icon"/> {acao.nome}</button>
+                                        );
+                                    })}
                                     <Link to={`/admin/editar/${conteudo.id}`} className="botao-contorno botao-pequeno"><Pencil className="icon"/> Editar</Link>
                                     {(conteudo.situacao === 'APROVADO' || (conteudo.situacao === 'ARQUIVADO' && conteudo.publicado)) && (
                                         <Link to={`/conteudo/${conteudo.id}`} className="botao-contorno botao-pequeno"><Eye className="icon"/> Ver no site</Link>

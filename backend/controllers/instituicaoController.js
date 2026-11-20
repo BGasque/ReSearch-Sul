@@ -1,6 +1,6 @@
 import prisma from '../services/adapter.js';
 import validarConteudo from '../services/validarConteudo.js';
-import { incluirPainel, formatarPainel } from '../services/formatarPainel.js';
+import { incluirPainel, formatarParaInstituicao as formatarPainel } from '../services/formatarPainel.js';
 
 // Área da instituição: cadastrar, listar, editar e arquivar os próprios eventos e publicações.
 // Tudo que é criado ou editado vai para "PENDENTE" e só aparece no site depois da aprovação do administrador.
@@ -122,6 +122,8 @@ function controller() {
                 if (!atual) return res.status(404).json("Conteúdo não encontrado na sua instituição.");
 
                 if (atual.situacao === 'ARQUIVADO') return res.status(400).json("Este conteúdo já está arquivado.");
+                // Conteúdo ocultado pelo administrador continua escondido (arquivar poderia mostrá-lo como histórico)
+                if (atual.situacao === 'OCULTO') return res.status(400).json("Este conteúdo foi ocultado pelo administrador. Edite e envie de novo para análise.");
 
                 const conteudo = await prisma.conteudo.update({
                     where: { id: atual.id },
