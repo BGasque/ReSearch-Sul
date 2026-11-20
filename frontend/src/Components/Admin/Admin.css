@@ -395,3 +395,31 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Áreas e juntar tags (CU16) ===== */
+.nova-area-campos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: end;
+}
+
+.tag-nome-edicao {
+    flex-wrap: wrap;
+}
+
+.juntar-rotulo {
+    font-size: 14px;
+}
+
+.tag-nome-edicao select.campo {
+    width: auto;
+    max-width: 100%;
+    padding: 6px 10px;
+}
+
+@media (max-width: 600px) {
+    .nova-area-campos {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
-import { ShieldCheck, Check, X, Pencil, Trash2, Eye, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox } from "lucide-react";
+import { ShieldCheck, Check, X, Pencil, Trash2, Eye, ChevronDown, ChevronUp, Hash, Users, Building2, ExternalLink, Inbox, BookOpen } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
@@ -106,6 +106,7 @@ const Moderacao = () => {
                     <div className="admin-atalhos">
                         <Link to="/admin/usuarios" className="botao-amarelo botao-grande"><Users className="icon"/> Usuários e instituições</Link>
                         <Link to="/admin/tags" className="botao-amarelo botao-grande"><Hash className="icon"/> Gerenciar tags</Link>
+                        <Link to="/admin/areas" className="botao-amarelo botao-grande"><BookOpen className="icon"/> Áreas</Link>
                     </div>
                 </div>
             </section>

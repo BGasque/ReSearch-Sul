@@ -24,6 +24,14 @@ routes.get('/admin/tags', protegido, adminController.listarTags);
 routes.post('/admin/tags', protegido, adminController.criarTag);
 routes.patch('/admin/tags/:id', protegido, adminController.editarTag);
 routes.delete('/admin/tags/:id', protegido, adminController.excluirTag);
+routes.post('/admin/tags/:id/juntar', protegido, adminController.juntarTag);
+
+//  Áreas do conhecimento
+routes.get('/admin/areas', protegido, adminController.listarAreas);
+routes.post('/admin/areas', protegido, adminController.criarArea);
+routes.patch('/admin/areas/:id', protegido, adminController.editarArea);
+routes.delete('/admin/areas/:id', protegido, adminController.excluirArea);
+routes.post('/admin/areas/:id/juntar', protegido, adminController.juntarArea);
 
 //  Usuários e instituições (CU15)
 routes.get('/admin/usuarios', protegido, adminController.listarUsuarios);

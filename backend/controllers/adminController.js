@@ -284,6 +284,145 @@ function controller() {
             }
         },
 
+        // Juntar duas tags repetidas (ex.: "Robótica" e "Robotica"): tudo que usava a tag de origem
+        // passa a usar a tag de destino, e a de origem é apagada (CU16).
+        async juntarTag(req, res) {
+            try {
+                const origemId = Number(req.params.id);
+                const destinoId = Number(req.body.destinoId);
+                if (!Number.isInteger(origemId) || !Number.isInteger(destinoId)) return res.status(400).json("Escolha as duas tags.");
+                if (origemId === destinoId) return res.status(400).json("Escolha uma tag diferente para juntar.");
+
+                const [origem, destino] = await Promise.all([
+                    prisma.tag.findUnique({ where: { id: origemId } }),
+                    prisma.tag.findUnique({ where: { id: destinoId } }),
+                ]);
+                if (!origem || !destino) return res.status(404).json("Tag não encontrada.");
+                if (!destino.ativa) return res.status(400).json("A tag que vai ficar precisa estar ativa.");
+
+                await prisma.$transaction(async (tx) => {
+                    const conteudos = await tx.conteudoTag.findMany({ where: { tagId: origemId }, select: { conteudoId: true } });
+                    const pessoas = await tx.interesseTag.findMany({ where: { tagId: origemId }, select: { usuarioId: true } });
+                    // skipDuplicates: se o conteúdo ou a pessoa já tinha as duas tags, fica só uma
+                    await tx.conteudoTag.createMany({ data: conteudos.map(({ conteudoId }) => ({ conteudoId, tagId: destinoId })), skipDuplicates: true });
+                    await tx.interesseTag.createMany({ data: pessoas.map(({ usuarioId }) => ({ usuarioId, tagId: destinoId })), skipDuplicates: true });
+                    // Apagar a tag de origem apaga junto os vínculos antigos dela
+                    await tx.tag.delete({ where: { id: origemId } });
+                });
+
+                res.status(200).json(`#${origem.nome} foi juntada com #${destino.nome}.`);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // ---------- Áreas do conhecimento (CU16) ----------
+
+        // Todas as áreas, com quantos conteúdos e pessoas usam cada uma
+        async listarAreas(req, res) {
+            try {
+                const areas = await prisma.area.findMany({
+                    orderBy: { nome: 'asc' },
+                    include: { _count: { select: { conteudos: true, interesses: true } } },
+                });
+                res.status(200).json(areas.map((area) => ({
+                    id: area.id,
+                    nome: area.nome,
+                    conteudos: area._count.conteudos,
+                    pessoas: area._count.interesses,
+                })));
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        async criarArea(req, res) {
+            try {
+                const nome = texto(req.body.nome);
+                if (nome.length < 2 || nome.length > 60) return res.status(400).json("O nome da área precisa ter entre 2 e 60 caracteres.");
+
+                const existe = await prisma.area.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
+                if (existe) return res.status(409).json("Já existe uma área com esse nome.");
+
+                const area = await prisma.area.create({ data: { nome } });
+                res.status(201).json(area);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        async editarArea(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const atual = Number.isInteger(id) ? await prisma.area.findUnique({ where: { id } }) : null;
+                if (!atual) return res.status(404).json("Área não encontrada.");
+
+                const nome = texto(req.body.nome);
+                if (nome.length < 2 || nome.length > 60) return res.status(400).json("O nome da área precisa ter entre 2 e 60 caracteres.");
+                const outra = await prisma.area.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
+                if (outra && outra.id !== id) return res.status(409).json("Já existe uma área com esse nome.");
+
+                const area = await prisma.area.update({ where: { id }, data: { nome } });
+                res.status(200).json(area);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Só dá para excluir área que ninguém usa. Se estiver em uso, o certo é juntar com outra.
+        async excluirArea(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const area = Number.isInteger(id)
+                    ? await prisma.area.findUnique({ where: { id }, include: { _count: { select: { conteudos: true, interesses: true } } } })
+                    : null;
+                if (!area) return res.status(404).json("Área não encontrada.");
+
+                if (area._count.conteudos > 0 || area._count.interesses > 0) {
+                    return res.status(409).json("Esta área está em uso. Junte com outra área em vez de excluir.");
+                }
+
+                await prisma.area.delete({ where: { id } });
+                res.status(200).json("Área excluída.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Juntar duas áreas: conteúdos e pessoas da área de origem passam para a de destino
+        async juntarArea(req, res) {
+            try {
+                const origemId = Number(req.params.id);
+                const destinoId = Number(req.body.destinoId);
+                if (!Number.isInteger(origemId) || !Number.isInteger(destinoId)) return res.status(400).json("Escolha as duas áreas.");
+                if (origemId === destinoId) return res.status(400).json("Escolha uma área diferente para juntar.");
+
+                const [origem, destino] = await Promise.all([
+                    prisma.area.findUnique({ where: { id: origemId } }),
+                    prisma.area.findUnique({ where: { id: destinoId } }),
+                ]);
+                if (!origem || !destino) return res.status(404).json("Área não encontrada.");
+
+                await prisma.$transaction(async (tx) => {
+                    const conteudos = await tx.conteudoArea.findMany({ where: { areaId: origemId }, select: { conteudoId: true } });
+                    const pessoas = await tx.interesse.findMany({ where: { areaId: origemId }, select: { usuarioId: true } });
+                    await tx.conteudoArea.createMany({ data: conteudos.map(({ conteudoId }) => ({ conteudoId, areaId: destinoId })), skipDuplicates: true });
+                    await tx.interesse.createMany({ data: pessoas.map(({ usuarioId }) => ({ usuarioId, areaId: destinoId })), skipDuplicates: true });
+                    await tx.area.delete({ where: { id: origemId } });
+                });
+
+                res.status(200).json(`${origem.nome} foi juntada com ${destino.nome}.`);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
         // ---------- Usuários e instituições (CU15) ----------
 
         // Lista de contas. Filtros: busca (nome ou e-mail), tipo e situacao (ativos, bloqueados, aguardando)

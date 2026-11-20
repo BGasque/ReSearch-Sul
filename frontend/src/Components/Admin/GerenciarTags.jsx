@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowLeft, Hash, Plus, Pencil, Trash2, Eye, EyeOff, Check } from "lucide-react";
+import { ArrowLeft, Hash, Plus, Pencil, Trash2, Eye, EyeOff, Check, Merge } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
@@ -19,6 +19,7 @@ const GerenciarTags = () => {
     const [nome, setNome] = useState('');
     const [grupo, setGrupo] = useState('Tema');
     const [editando, setEditando] = useState(null); // { id, nome }
+    const [juntando, setJuntando] = useState(null); // { id, destinoId }
     const [mensagem, setMensagem] = useState(null);
 
     async function carregar() {
@@ -40,8 +41,8 @@ const GerenciarTags = () => {
 
     async function agir(acao, textoSucesso) {
         try {
-            await acao();
-            setMensagem({ texto: textoSucesso });
+            const resposta = await acao();
+            setMensagem({ texto: textoSucesso || resposta.data });
             carregar();
             return true;
         } catch (error) {
@@ -68,6 +69,20 @@ const GerenciarTags = () => {
         );
     }
 
+    // Juntar tag repetida: quem usava esta passa a usar a outra, e esta é apagada
+    async function juntar(tag) {
+        const destino = tags.find((item) => item.id === Number(juntando.destinoId));
+        if (!destino) return;
+        const confirmou = window.confirm(
+            `Juntar #${tag.nome} com #${destino.nome}?\n\n` +
+            `Os ${tag.conteudos} conteúdos e as ${tag.pessoas} pessoas de #${tag.nome} passam para #${destino.nome}, ` +
+            `e #${tag.nome} é apagada. Isso não pode ser desfeito.`
+        );
+        if (!confirmou) return;
+        const ok = await agir(() => api.post(`/admin/tags/${tag.id}/juntar`, { destinoId: destino.id }, cabecalhoAuth()));
+        if (ok) setJuntando(null);
+    }
+
     function excluir(tag) {
         if (!window.confirm(`Excluir a tag #${tag.nome}?`)) return;
         agir(() => api.delete(`/admin/tags/${tag.id}`, cabecalhoAuth()), `#${tag.nome} foi excluída.`);
@@ -81,7 +96,7 @@ const GerenciarTags = () => {
                 <div className="container">
                     <Link to="/admin" className="voltar-claro"><ArrowLeft className="icon"/> Voltar para a moderação</Link>
                     <h1>Gerenciar <span className="marca-texto">tags</span></h1>
-                    <p>As tags aparecem na busca, no perfil das pessoas e no cadastro de eventos. Tag em uso não pode ser excluída: desative.</p>
+                    <p>As tags aparecem na busca, no perfil das pessoas e no cadastro de eventos. Tag em uso não pode ser excluída: desative ou junte com outra.</p>
                 </div>
             </section>
 
@@ -123,6 +138,16 @@ const GerenciarTags = () => {
                                                 <button type="button" className="botao-azul botao-pequeno" onClick={() => salvarNome(tag)}><Check className="icon"/> Salvar</button>
                                                 <button type="button" className="botao-contorno botao-pequeno" onClick={() => setEditando(null)}>Cancelar</button>
                                             </span>
+                                        ) : juntando?.id === tag.id ? (
+                                            <span className="tag-nome-edicao">
+                                                <span className="juntar-rotulo">Juntar <strong>#{tag.nome}</strong> com</span>
+                                                <select className="campo" value={juntando.destinoId} onChange={(e) => setJuntando({ ...juntando, destinoId: e.target.value })} aria-label={`Tag que vai ficar no lugar de #${tag.nome}`}>
+                                                    <option value="">Escolha a tag que fica</option>
+                                                    {tags.filter((item) => item.id !== tag.id && item.ativa).map((item) => <option key={item.id} value={item.id}>#{item.nome} ({item.grupo})</option>)}
+                                                </select>
+                                                <button type="button" className="botao-azul botao-pequeno" disabled={!juntando.destinoId} onClick={() => juntar(tag)}><Merge className="icon"/> Juntar</button>
+                                                <button type="button" className="botao-contorno botao-pequeno" onClick={() => setJuntando(null)}>Cancelar</button>
+                                            </span>
                                         ) : (
                                             <span className="tag-nome">
                                                 <Hash className="icon"/>{tag.nome}
@@ -133,7 +158,8 @@ const GerenciarTags = () => {
                                         <span className="tag-uso">{tag.conteudos} conteúdos · {tag.pessoas} pessoas</span>
 
                                         <span className="tag-acoes">
-                                            <button type="button" className="icone-botao" onClick={() => setEditando({ id: tag.id, nome: tag.nome })} aria-label={`Renomear #${tag.nome}`} title="Renomear"><Pencil className="icon"/></button>
+                                            <button type="button" className="icone-botao" onClick={() => { setJuntando(null); setEditando({ id: tag.id, nome: tag.nome }); }} aria-label={`Renomear #${tag.nome}`} title="Renomear"><Pencil className="icon"/></button>
+                                            <button type="button" className="icone-botao" onClick={() => { setEditando(null); setJuntando({ id: tag.id, destinoId: '' }); }} aria-label={`Juntar #${tag.nome} com outra tag`} title="Juntar com outra tag (repetida)"><Merge className="icon"/></button>
                                             <button type="button" className="icone-botao" onClick={() => alternarAtiva(tag)} aria-label={tag.ativa ? `Desativar #${tag.nome}` : `Reativar #${tag.nome}`} title={tag.ativa ? 'Desativar' : 'Reativar'}>
                                                 {tag.ativa ? <EyeOff className="icon"/> : <Eye className="icon"/>}
                                             </button>
