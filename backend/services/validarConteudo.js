@@ -1,4 +1,5 @@
 import prisma from './adapter.js';
+import { filtroTagsAtivas } from './taxonomia.js';
 
 // Confere os dados de um evento ou publicação enviados pela instituição.
 // Devolve { erro } se algo estiver errado, ou { dados } pronto para salvar no banco.
@@ -38,7 +39,8 @@ function issnLimpo(valor) {
 }
 
 // tagsAtuais: tags que o conteúdo já tinha (continuam valendo mesmo se o admin desativou)
-export default async function validarConteudo(corpo, tagsAtuais = []) {
+// areasAtuais: o mesmo para as áreas
+export default async function validarConteudo(corpo, tagsAtuais = [], areasAtuais = []) {
     const tipo = texto(corpo.tipo);
     const titulo = texto(corpo.titulo);
     const descricao = texto(corpo.descricao);
@@ -109,7 +111,9 @@ export default async function validarConteudo(corpo, tagsAtuais = []) {
     if (areas.length < 1 || areas.length > 4 || areas.some((id) => !Number.isInteger(id))) {
         return { erro: "Escolha de 1 a 4 áreas do conhecimento." };
     }
-    const existentes = await prisma.area.count({ where: { id: { in: areas } } });
+    const existentes = await prisma.area.count({
+        where: { id: { in: areas }, OR: [{ ativa: true }, { id: { in: areasAtuais } }] },
+    });
     if (existentes !== areas.length) return { erro: "Alguma área escolhida não existe." };
 
     // Tags: opcionais, no máximo 8, e todas precisam existir e estar ativas
@@ -118,7 +122,7 @@ export default async function validarConteudo(corpo, tagsAtuais = []) {
         return { erro: "Escolha no máximo 8 tags." };
     }
     const tagsExistentes = await prisma.tag.count({
-        where: { id: { in: tags }, OR: [{ ativa: true }, { id: { in: tagsAtuais } }] },
+        where: { id: { in: tags }, OR: [await filtroTagsAtivas(), { id: { in: tagsAtuais } }] },
     });
     if (tagsExistentes !== tags.length) return { erro: "Alguma tag escolhida não existe." };
 

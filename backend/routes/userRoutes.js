@@ -30,6 +30,8 @@ routes.get('/me',authUser, userController.getUser);
 
 //  Direitos da LGPD: corrigir o nome, baixar os dados e apagar a conta
 routes.put('/perfil/nome',authUser, userController.editarNome);
+routes.put('/perfil/senha',authUser, userController.trocarSenha);
+routes.put('/perfil/email',authUser, userController.trocarEmail);
 routes.get('/perfil/meus-dados',authUser, userController.meusDados);
 routes.delete('/perfil/conta',authUser, userController.excluirConta);
 

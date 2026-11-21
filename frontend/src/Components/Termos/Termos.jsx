@@ -193,7 +193,7 @@ const Termos = () => (
                     </ul>
                     <p>
                         Quase tudo dá para fazer sozinho, na parte <strong>Meus dados</strong> do seu perfil:
-                        corrigir o nome, baixar uma cópia dos dados e apagar a conta. Para o resto (como corrigir o e-mail),
+                        corrigir o nome e o e-mail, trocar a senha, baixar uma cópia dos dados e apagar a conta. Para o resto,
                         escreva para <a href={`mailto:${EMAIL_CONTATO}`}>{EMAIL_CONTATO}</a>. Respondemos em até 15 dias.
                     </p>
                     <p>

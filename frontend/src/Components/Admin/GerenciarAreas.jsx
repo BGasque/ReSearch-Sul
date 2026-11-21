@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { ArrowLeft, BookOpen, Plus, Pencil, Trash2, Check, Merge } from "lucide-react";
+import { ArrowLeft, BookOpen, Plus, Pencil, Trash2, Check, Merge, Eye, EyeOff } from "lucide-react";
 import api from "../../../services/api.js";
 import Cabecalho from "../Cabecalho/Cabecalho.jsx";
 import Rodape from "../Rodape/Rodape.jsx";
@@ -8,7 +8,7 @@ import { cabecalhoAuth, usuarioLogado } from "../../utils/auth.js";
 import "../Instituicao/Instituicao.css";
 import "./Admin.css";
 
-// Página do administrador para criar, renomear, juntar e excluir áreas do conhecimento (CU16)
+// Página do administrador para criar, renomear, juntar, desativar e excluir áreas do conhecimento (CU16 e RF18)
 const GerenciarAreas = () => {
     const navigate = useNavigate();
     const usuario = usuarioLogado();
@@ -72,6 +72,13 @@ const GerenciarAreas = () => {
         if (ok) setJuntando(null);
     }
 
+    function alternarAtiva(area) {
+        agir(
+            () => api.patch(`/admin/areas/${area.id}`, { ativa: !area.ativa }, cabecalhoAuth()),
+            area.ativa ? `"${area.nome}" foi desativada e não aparece mais nas escolhas.` : `"${area.nome}" foi reativada.`
+        );
+    }
+
     function excluir(area) {
         if (!window.confirm(`Excluir a área "${area.nome}"?`)) return;
         agir(() => api.delete(`/admin/areas/${area.id}`, cabecalhoAuth()), `"${area.nome}" foi excluída.`);
@@ -85,7 +92,7 @@ const GerenciarAreas = () => {
                 <div className="container">
                     <Link to="/admin" className="voltar-claro"><ArrowLeft className="icon"/> Voltar para a moderação</Link>
                     <h1>Áreas do <span className="marca-texto">conhecimento</span></h1>
-                    <p>As áreas aparecem no filtro do catálogo, nos interesses das pessoas e no cadastro de eventos. Área em uso não pode ser excluída: junte com outra.</p>
+                    <p>As áreas aparecem no filtro do catálogo, nos interesses das pessoas e no cadastro de eventos. Área em uso não pode ser excluída: desative ou junte com outra.</p>
                 </div>
             </section>
 
@@ -112,7 +119,7 @@ const GerenciarAreas = () => {
                             {areas.map((area) => {
                                 const emUso = area.conteudos > 0 || area.pessoas > 0;
                                 return (
-                                    <li key={area.id} className="tag-linha">
+                                    <li key={area.id} className={area.ativa ? 'tag-linha' : 'tag-linha desativada'}>
                                         {editando?.id === area.id ? (
                                             <span className="tag-nome-edicao">
                                                 <input className="campo" value={editando.nome} maxLength={60} onChange={(e) => setEditando({ ...editando, nome: e.target.value })} aria-label="Novo nome da área"/>
@@ -130,7 +137,7 @@ const GerenciarAreas = () => {
                                                 <button type="button" className="botao-contorno botao-pequeno" onClick={() => setJuntando(null)}>Cancelar</button>
                                             </span>
                                         ) : (
-                                            <span className="tag-nome"><BookOpen className="icon"/>{area.nome}</span>
+                                            <span className="tag-nome"><BookOpen className="icon"/>{area.nome}{!area.ativa && <span className="chip">Desativada</span>}</span>
                                         )}
 
                                         <span className="tag-uso">{area.conteudos} conteúdos · {area.pessoas} pessoas</span>
@@ -138,13 +145,16 @@ const GerenciarAreas = () => {
                                         <span className="tag-acoes">
                                             <button type="button" className="icone-botao" onClick={() => { setJuntando(null); setEditando({ id: area.id, nome: area.nome }); }} aria-label={`Renomear ${area.nome}`} title="Renomear"><Pencil className="icon"/></button>
                                             <button type="button" className="icone-botao" disabled={areas.length < 2} onClick={() => { setEditando(null); setJuntando({ id: area.id, destinoId: '' }); }} aria-label={`Juntar ${area.nome} com outra área`} title="Juntar com outra área"><Merge className="icon"/></button>
+                                            <button type="button" className="icone-botao" onClick={() => alternarAtiva(area)} aria-label={area.ativa ? `Desativar ${area.nome}` : `Reativar ${area.nome}`} title={area.ativa ? 'Desativar' : 'Reativar'}>
+                                                {area.ativa ? <EyeOff className="icon"/> : <Eye className="icon"/>}
+                                            </button>
                                             <button
                                                 type="button"
                                                 className="icone-botao perigo"
                                                 onClick={() => excluir(area)}
                                                 disabled={emUso}
                                                 aria-label={`Excluir ${area.nome}`}
-                                                title={emUso ? 'Em uso: junte com outra área em vez de excluir' : 'Excluir'}
+                                                title={emUso ? 'Em uso: desative ou junte com outra área em vez de excluir' : 'Excluir'}
                                             >
                                                 <Trash2 className="icon"/>
                                             </button>

@@ -85,7 +85,7 @@ function controller() {
                 const atual = await buscarDaInstituicao(req.params.id, req.user.id);
                 if (!atual) return res.status(404).json("Conteúdo não encontrado na sua instituição.");
 
-                const validado = await validarConteudo(req.body, atual.tags.map((item) => item.tagId));
+                const validado = await validarConteudo(req.body, atual.tags.map((item) => item.tagId), atual.areas.map((item) => item.areaId));
                 if (validado.erro) return res.status(400).json(validado.erro);
 
                 const aviso = await avisoDuplicado(validado.dados.titulo, atual.id);

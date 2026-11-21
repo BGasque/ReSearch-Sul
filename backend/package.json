@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node index.js",
     "migrate": "prisma migrate dev",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "backup": "node --env-file=.env scripts/backup.js"
   },
   "keywords": [],
   "author": "",

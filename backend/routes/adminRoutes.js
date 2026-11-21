@@ -32,6 +32,12 @@ routes.delete('/admin/tags/:id', protegido, adminController.excluirTag);
 routes.post('/admin/tags/:id/juntar', protegido, adminController.juntarTag);
 
 //  Áreas do conhecimento
+routes.get('/admin/categorias', protegido, adminController.listarCategorias);
+routes.post('/admin/categorias', protegido, adminController.criarCategoria);
+routes.patch('/admin/categorias/:id', protegido, adminController.editarCategoria);
+routes.delete('/admin/categorias/:id', protegido, adminController.excluirCategoria);
+routes.post('/admin/categorias/:id/juntar', protegido, adminController.juntarCategoria);
+
 routes.get('/admin/areas', protegido, adminController.listarAreas);
 routes.post('/admin/areas', protegido, adminController.criarArea);
 routes.patch('/admin/areas/:id', protegido, adminController.editarArea);

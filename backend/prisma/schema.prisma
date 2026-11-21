@@ -107,8 +107,9 @@ model Usuario {
 
 // 2. Áreas do conhecimento (ex.: Computação, Saúde)
 model Area {
-  id   Int    @id @default(autoincrement())
-  nome String @unique
+  id    Int     @id @default(autoincrement())
+  nome  String  @unique
+  ativa Boolean @default(true) // área desativada some das escolhas, mas não apaga os vínculos (RF18)
 
   conteudos  ConteudoArea[]
   interesses Interesse[]
@@ -255,6 +256,13 @@ model InteresseTipo {
 }
 
 // 7. Tags: assuntos mais específicos (ex.: Extensão, Robótica, Feira de ciências), organizados em grupos
+// Categorias das tags (ex.: "Eixo", "Tema"). Guardamos o nome da categoria em Tag.grupo (RF18)
+model Categoria {
+  id    Int     @id @default(autoincrement())
+  nome  String  @unique
+  ativa Boolean @default(true) // categoria desativada esconde as tags dela das escolhas
+}
+
 model Tag {
   id    Int     @id @default(autoincrement())
   nome  String  @unique

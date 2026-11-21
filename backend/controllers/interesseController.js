@@ -1,4 +1,5 @@
 import prisma from '../services/adapter.js';
+import { filtroTagsAtivas } from '../services/taxonomia.js';
 
 const ESTADOS = ['PR', 'SC', 'RS'];
 const TIPOS = ['EVENTO', 'PUBLICACAO'];
@@ -65,10 +66,16 @@ function controller() {
                     return res.status(400).json("Escolha apenas eventos ou publicações.");
                 }
 
-                // Confere se as áreas e as tags existem
+                // Confere se as áreas e as tags existem e estão ativas
+                // (as que a pessoa já tinha continuam valendo, mesmo se o admin desativou depois)
+                const [areasSalvas, tagsSalvas, filtroTags] = await Promise.all([
+                    prisma.interesse.findMany({ where: { usuarioId: id }, select: { areaId: true } }),
+                    prisma.interesseTag.findMany({ where: { usuarioId: id }, select: { tagId: true } }),
+                    filtroTagsAtivas(),
+                ]);
                 const [areasExistentes, tagsExistentes] = await Promise.all([
-                    prisma.area.count({ where: { id: { in: areas } } }),
-                    prisma.tag.count({ where: { id: { in: tags }, ativa: true } }),
+                    prisma.area.count({ where: { id: { in: areas }, OR: [{ ativa: true }, { id: { in: areasSalvas.map((item) => item.areaId) } }] } }),
+                    prisma.tag.count({ where: { id: { in: tags }, OR: [filtroTags, { id: { in: tagsSalvas.map((item) => item.tagId) } }] } }),
                 ]);
                 if (areasExistentes !== areas.length) return res.status(400).json("Alguma área escolhida não existe.");
                 if (tagsExistentes !== tags.length) return res.status(400).json("Alguma tag escolhida não existe.");

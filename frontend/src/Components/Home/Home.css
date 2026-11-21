@@ -344,7 +344,7 @@
     font-family: var(--fonte-titulo);
     font-weight: 800;
     font-size: 32px;
-    color: var(--linha);
+    color: #8A8C9C; /* cinza com contraste suficiente para número grande (RNF03) */
 }
 
 .passo-icone {

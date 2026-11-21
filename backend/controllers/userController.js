@@ -3,6 +3,12 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
 import enviarEmail from '../services/email.js';
+import { criarLimite, textoEspera } from '../services/limiteTentativas.js';
+
+// Limites contra tentativas repetidas (RNF05)
+const limiteLogin = criarLimite({ maximo: 5, janelaMin: 15, esperaMin: 15 }); // senha errada no login
+const limiteSenhaPerfil = criarLimite({ maximo: 5, janelaMin: 15, esperaMin: 15 }); // senha errada ao trocar dados
+const limiteEsqueci = criarLimite({ maximo: 3, janelaMin: 15, esperaMin: 15 }); // pedidos de "Esqueci a senha"
 
 // Formato simples de e-mail: algo@algo.algo
 const FORMATO_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -105,6 +111,11 @@ function controller() {
                     return res.status(400).json("Informe e-mail e senha.");
                 }
 
+                // Muitas tentativas erradas seguidas: espera um pouco (RNF05)
+                const chave = `${email}|${req.ip}`;
+                const minutos = limiteLogin.minutosBloqueado(chave);
+                if (minutos > 0) return res.status(429).json(textoEspera(minutos));
+
                 // Procurando usuário
                 const usuario = await prisma.usuario.findUnique({
                     where: {
@@ -117,8 +128,10 @@ function controller() {
 
                 // A mensagem é a mesma nos dois casos, pra não revelar qual dado está errado
                 if (!senhaCerta) {
+                    limiteLogin.errou(chave);
                     return res.status(401).json("E-mail ou senha incorretos.");
                 }
+                limiteLogin.acertou(chave);
 
                 // Conta bloqueada pelo administrador não entra
                 if (usuario.bloqueado) {
@@ -190,6 +203,11 @@ function controller() {
                 if (!email || !FORMATO_EMAIL.test(email)) {
                     return res.status(400).json("Informe um e-mail válido.");
                 }
+
+                // No máximo 3 pedidos seguidos para o mesmo e-mail (evita encher a caixa de alguém)
+                const minutos = limiteEsqueci.minutosBloqueado(email);
+                if (minutos > 0) return res.status(429).json(`Já enviamos vários links. Espere ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'} e tente de novo.`);
+                limiteEsqueci.errou(email);
 
                 const usuario = await prisma.usuario.findUnique({ where: { email } });
                 if (!usuario) return res.status(200).json(RESPOSTA);
@@ -267,6 +285,68 @@ Se não foi você, é só ignorar este e-mail: sua senha continua a mesma.`,
 
                 await prisma.usuario.update({ where: { id: Number(req.user.id) }, data: { nome } });
                 res.status(200).json("Nome atualizado.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Trocar a senha estando logado (RF07): pede a senha atual
+        async trocarSenha(req, res) {
+            try {
+                const { senhaAtual, novaSenha } = req.body;
+                if (typeof senhaAtual !== 'string' || !senhaAtual) return res.status(400).json("Digite sua senha atual.");
+                if (typeof novaSenha !== 'string' || novaSenha.length < 6 || novaSenha.length > 72) {
+                    return res.status(400).json("A nova senha precisa ter entre 6 e 72 caracteres.");
+                }
+
+                const chave = `perfil|${req.user.id}`;
+                const minutos = limiteSenhaPerfil.minutosBloqueado(chave);
+                if (minutos > 0) return res.status(429).json(textoEspera(minutos));
+
+                const usuario = await prisma.usuario.findUnique({ where: { id: Number(req.user.id) } });
+                if (!(await bcrypt.compare(senhaAtual, usuario.senha))) {
+                    limiteSenhaPerfil.errou(chave);
+                    return res.status(401).json("A senha atual está errada.");
+                }
+                limiteSenhaPerfil.acertou(chave);
+
+                await prisma.usuario.update({
+                    where: { id: usuario.id },
+                    data: { senha: await bcrypt.hash(novaSenha, 10), resetSenhaHash: null, resetSenhaExpira: null },
+                });
+                res.status(200).json("Senha trocada.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Corrigir o e-mail (RF07 e LGPD art. 18, III): pede a senha para confirmar
+        async trocarEmail(req, res) {
+            try {
+                const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+                const { senha } = req.body;
+                if (email.length > 150 || !FORMATO_EMAIL.test(email)) return res.status(400).json("Informe um e-mail válido.");
+                if (typeof senha !== 'string' || !senha) return res.status(400).json("Digite sua senha para confirmar.");
+
+                const chave = `perfil|${req.user.id}`;
+                const minutos = limiteSenhaPerfil.minutosBloqueado(chave);
+                if (minutos > 0) return res.status(429).json(textoEspera(minutos));
+
+                const usuario = await prisma.usuario.findUnique({ where: { id: Number(req.user.id) } });
+                if (!(await bcrypt.compare(senha, usuario.senha))) {
+                    limiteSenhaPerfil.errou(chave);
+                    return res.status(401).json("A senha está errada.");
+                }
+                limiteSenhaPerfil.acertou(chave);
+
+                if (email === usuario.email) return res.status(400).json("Este já é o seu e-mail.");
+                const outra = await prisma.usuario.findUnique({ where: { email } });
+                if (outra) return res.status(409).json("Este e-mail já está em uso por outra conta.");
+
+                await prisma.usuario.update({ where: { id: usuario.id }, data: { email } });
+                res.status(200).json("E-mail atualizado. Use o novo e-mail para entrar.");
             } catch (error) {
                 console.log(error.message);
                 res.status(500).json("Erro no servidor.");

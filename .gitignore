@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Cópias de segurança do banco (têm dados pessoais: ficam só no computador)
+backend/backups/
+
 # Arquivos gerados
 dist/
 frontend/dist/

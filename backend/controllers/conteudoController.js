@@ -1,4 +1,5 @@
 import prisma from '../services/adapter.js';
+import { filtroTagsAtivas } from '../services/taxonomia.js';
 
 // O que buscar junto com cada conteúdo do catálogo
 const incluir = {
@@ -89,7 +90,7 @@ function controller() {
         // Lista de áreas, usada no filtro
         async listarAreas(req, res) {
             try {
-                const areas = await prisma.area.findMany({ orderBy: { nome: 'asc' } });
+                const areas = await prisma.area.findMany({ where: { ativa: true }, orderBy: { nome: 'asc' }, select: { id: true, nome: true } });
                 res.status(200).json(areas);
             } catch (error) {
                 console.log(error.message);
@@ -101,7 +102,7 @@ function controller() {
         async listarTags(req, res) {
             try {
                 const tags = await prisma.tag.findMany({
-                    where: { ativa: true },
+                    where: await filtroTagsAtivas(),
                     orderBy: [{ grupo: 'asc' }, { nome: 'asc' }],
                     select: { id: true, nome: true, grupo: true },
                 });

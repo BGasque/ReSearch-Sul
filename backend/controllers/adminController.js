@@ -19,7 +19,6 @@ function formatarUsuario({ _count, ...usuario }) {
     return { ...usuario, conteudos: _count.conteudos, favoritos: _count.favoritos };
 }
 
-const GRUPOS_TAG = ['Eixo', 'Nível de ensino', 'Formato', 'Tema'];
 
 // Procura um conteúdo de qualquer instituição pelo id da URL
 async function buscarConteudo(idTexto) {
@@ -30,6 +29,11 @@ async function buscarConteudo(idTexto) {
 
 function texto(valor) {
     return typeof valor === 'string' ? valor.trim() : '';
+}
+
+// A categoria escolhida para uma tag precisa existir e estar ativa
+async function categoriaValida(nome) {
+    return Boolean(await prisma.categoria.findFirst({ where: { nome, ativa: true } }));
 }
 
 // Registro da decisão (RF16): quem decidiu, o quê, por quê e quando
@@ -200,7 +204,7 @@ function controller() {
                 const atual = await buscarConteudo(req.params.id);
                 if (!atual) return res.status(404).json("Conteúdo não encontrado.");
 
-                const validado = await validarConteudo(req.body, atual.tags.map((item) => item.tag.id));
+                const validado = await validarConteudo(req.body, atual.tags.map((item) => item.tag.id), atual.areas.map((item) => item.area.id));
                 if (validado.erro) return res.status(400).json(validado.erro);
 
                 await prisma.$transaction([
@@ -275,7 +279,7 @@ function controller() {
                 const grupo = texto(req.body.grupo);
 
                 if (nome.length < 2 || nome.length > 40) return res.status(400).json("O nome da tag precisa ter entre 2 e 40 caracteres.");
-                if (!GRUPOS_TAG.includes(grupo)) return res.status(400).json(`Escolha um grupo: ${GRUPOS_TAG.join(', ')}.`);
+                if (!(await categoriaValida(grupo))) return res.status(400).json("Escolha uma categoria ativa.");
 
                 // Não deixa criar tag repetida, nem com outras maiúsculas/minúsculas (ex.: "robótica" e "Robótica")
                 const existe = await prisma.tag.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
@@ -305,7 +309,7 @@ function controller() {
                     dados.nome = nome;
                 }
                 if (req.body.grupo !== undefined) {
-                    if (!GRUPOS_TAG.includes(req.body.grupo)) return res.status(400).json(`Escolha um grupo: ${GRUPOS_TAG.join(', ')}.`);
+                    if (!(await categoriaValida(req.body.grupo))) return res.status(400).json("Escolha uma categoria ativa.");
                     dados.grupo = req.body.grupo;
                 }
                 if (req.body.ativa !== undefined) {
@@ -375,6 +379,112 @@ function controller() {
             }
         },
 
+        // ---------- Categorias das tags (RF18) ----------
+
+        // Todas as categorias, com quantas tags cada uma tem
+        async listarCategorias(req, res) {
+            try {
+                const [categorias, porGrupo] = await Promise.all([
+                    prisma.categoria.findMany({ orderBy: { nome: 'asc' } }),
+                    prisma.tag.groupBy({ by: ['grupo'], _count: true }),
+                ]);
+                const contagem = Object.fromEntries(porGrupo.map((item) => [item.grupo, item._count]));
+                res.status(200).json(categorias.map((categoria) => ({ ...categoria, tags: contagem[categoria.nome] || 0 })));
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        async criarCategoria(req, res) {
+            try {
+                const nome = texto(req.body.nome);
+                if (nome.length < 2 || nome.length > 40) return res.status(400).json("O nome da categoria precisa ter entre 2 e 40 caracteres.");
+                const existe = await prisma.categoria.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
+                if (existe) return res.status(409).json("Já existe uma categoria com esse nome.");
+
+                const categoria = await prisma.categoria.create({ data: { nome } });
+                res.status(201).json(categoria);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Renomear (as tags acompanham) e/ou ativar/desativar
+        async editarCategoria(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const atual = Number.isInteger(id) ? await prisma.categoria.findUnique({ where: { id } }) : null;
+                if (!atual) return res.status(404).json("Categoria não encontrada.");
+
+                const dados = {};
+                if (req.body.nome !== undefined) {
+                    const nome = texto(req.body.nome);
+                    if (nome.length < 2 || nome.length > 40) return res.status(400).json("O nome da categoria precisa ter entre 2 e 40 caracteres.");
+                    const outra = await prisma.categoria.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
+                    if (outra && outra.id !== id) return res.status(409).json("Já existe uma categoria com esse nome.");
+                    dados.nome = nome;
+                }
+                if (req.body.ativa !== undefined) {
+                    if (typeof req.body.ativa !== 'boolean') return res.status(400).json("Valor inválido para ativa.");
+                    dados.ativa = req.body.ativa;
+                }
+                if (Object.keys(dados).length === 0) return res.status(400).json("Nada para mudar.");
+
+                const [categoria] = await prisma.$transaction([
+                    prisma.categoria.update({ where: { id }, data: dados }),
+                    prisma.tag.updateMany({ where: { grupo: atual.nome }, data: { grupo: dados.nome || atual.nome } }),
+                ]);
+                res.status(200).json(categoria);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Só dá para excluir categoria sem tags. Com tags, o certo é juntar ou desativar.
+        async excluirCategoria(req, res) {
+            try {
+                const id = Number(req.params.id);
+                const categoria = Number.isInteger(id) ? await prisma.categoria.findUnique({ where: { id } }) : null;
+                if (!categoria) return res.status(404).json("Categoria não encontrada.");
+                const emUso = await prisma.tag.count({ where: { grupo: categoria.nome } });
+                if (emUso > 0) return res.status(409).json("Esta categoria tem tags. Junte com outra ou desative em vez de excluir.");
+
+                await prisma.categoria.delete({ where: { id } });
+                res.status(200).json("Categoria excluída.");
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
+        // Juntar categorias: as tags da origem passam para o destino, e a origem é apagada
+        async juntarCategoria(req, res) {
+            try {
+                const origemId = Number(req.params.id);
+                const destinoId = Number(req.body.destinoId);
+                if (!Number.isInteger(origemId) || !Number.isInteger(destinoId)) return res.status(400).json("Escolha as duas categorias.");
+                if (origemId === destinoId) return res.status(400).json("Escolha uma categoria diferente para juntar.");
+
+                const [origem, destino] = await Promise.all([
+                    prisma.categoria.findUnique({ where: { id: origemId } }),
+                    prisma.categoria.findUnique({ where: { id: destinoId } }),
+                ]);
+                if (!origem || !destino) return res.status(404).json("Categoria não encontrada.");
+
+                await prisma.$transaction([
+                    prisma.tag.updateMany({ where: { grupo: origem.nome }, data: { grupo: destino.nome } }),
+                    prisma.categoria.delete({ where: { id: origemId } }),
+                ]);
+                res.status(200).json(`${origem.nome} foi juntada com ${destino.nome}.`);
+            } catch (error) {
+                console.log(error.message);
+                res.status(500).json("Erro no servidor.");
+            }
+        },
+
         // ---------- Áreas do conhecimento (CU16) ----------
 
         // Todas as áreas, com quantos conteúdos e pessoas usam cada uma
@@ -387,6 +497,7 @@ function controller() {
                 res.status(200).json(areas.map((area) => ({
                     id: area.id,
                     nome: area.nome,
+                    ativa: area.ativa,
                     conteudos: area._count.conteudos,
                     pessoas: area._count.interesses,
                 })));
@@ -418,12 +529,22 @@ function controller() {
                 const atual = Number.isInteger(id) ? await prisma.area.findUnique({ where: { id } }) : null;
                 if (!atual) return res.status(404).json("Área não encontrada.");
 
-                const nome = texto(req.body.nome);
-                if (nome.length < 2 || nome.length > 60) return res.status(400).json("O nome da área precisa ter entre 2 e 60 caracteres.");
-                const outra = await prisma.area.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
-                if (outra && outra.id !== id) return res.status(409).json("Já existe uma área com esse nome.");
+                // Renomear e/ou ativar/desativar (RF18)
+                const dados = {};
+                if (req.body.nome !== undefined) {
+                    const nome = texto(req.body.nome);
+                    if (nome.length < 2 || nome.length > 60) return res.status(400).json("O nome da área precisa ter entre 2 e 60 caracteres.");
+                    const outra = await prisma.area.findFirst({ where: { nome: { equals: nome, mode: "insensitive" } } });
+                    if (outra && outra.id !== id) return res.status(409).json("Já existe uma área com esse nome.");
+                    dados.nome = nome;
+                }
+                if (req.body.ativa !== undefined) {
+                    if (typeof req.body.ativa !== 'boolean') return res.status(400).json("Valor inválido para ativa.");
+                    dados.ativa = req.body.ativa;
+                }
+                if (Object.keys(dados).length === 0) return res.status(400).json("Nada para mudar.");
 
-                const area = await prisma.area.update({ where: { id }, data: { nome } });
+                const area = await prisma.area.update({ where: { id }, data: dados });
                 res.status(200).json(area);
             } catch (error) {
                 console.log(error.message);

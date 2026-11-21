@@ -10,6 +10,21 @@ import cors from 'cors';
 //  Inicializando aplicação express
 const app = express();
 
+// No Render, o pedido passa por um "intermediário" (proxy): isto faz req.ip ser o endereço de quem acessou
+app.set('trust proxy', 1);
+
+// Cabeçalhos de segurança (RNF05): não conta qual tecnologia usa, não deixa abrir dentro de outro site
+// e não deixa o navegador "adivinhar" o tipo dos arquivos
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+    res.set({
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
+    });
+    next();
+});
+
 // CORS: diz quais sites podem usar esta API.
 // Na nuvem, FRONTEND_URL é o endereço do site (ex.: https://research-sul.vercel.app);
 // sem FRONTEND_URL (no computador), qualquer endereço pode.
@@ -17,6 +32,10 @@ app.use(cors({ origin: process.env.FRONTEND_URL || true }));
 
 // Limite maior porque o XML do Lattes pode ter alguns megabytes
 app.use(express.json({ limit: '15mb' }));
+
+// Rota de "saúde": responde na hora, sem usar o banco. O GitHub Actions chama ela a cada 10 minutos
+// para o servidor gratuito do Render não dormir (RNF04: páginas em até 3 segundos)
+app.get('/saude', (req, res) => res.status(200).json({ ok: true }));
 
 // Importar rotas
 app.use(userRoutes);

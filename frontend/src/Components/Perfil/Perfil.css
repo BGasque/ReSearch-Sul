@@ -78,11 +78,12 @@
 .caixa-perfil.verde { border-top-color: var(--verde); }
 .caixa-perfil.coral { border-top-color: var(--coral); }
 
-.caixa-perfil.verde .sobrancelha { color: var(--verde); }
+/* Tons mais escuros para o texto pequeno ter contraste no branco (RNF03) */
+.caixa-perfil.verde .sobrancelha { color: #137A55; }
 .caixa-perfil.verde .icone-quadrado { background-color: var(--verde); }
-.caixa-perfil.coral .sobrancelha { color: #D9472C; }
+.caixa-perfil.coral .sobrancelha { color: #B8361C; }
 .caixa-perfil.coral .icone-quadrado { background-color: var(--coral); }
-.caixa-perfil.amarelo .sobrancelha { color: #A87900; }
+.caixa-perfil.amarelo .sobrancelha { color: #8A6300; }
 .caixa-perfil.amarelo .icone-quadrado { background-color: var(--amarelo); }
 .caixa-perfil.amarelo .icone-quadrado .icon { color: var(--tinta); }
 

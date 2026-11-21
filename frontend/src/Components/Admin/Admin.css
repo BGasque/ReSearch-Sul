@@ -189,6 +189,24 @@
 }
 
 /* ===== Gerenciar tags ===== */
+.nova-categoria {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.nova-categoria .campo-rotulado {
+    flex: 1 1 240px;
+}
+
+.campo-categoria {
+    width: auto;
+    max-width: 160px;
+    padding: 6px 8px;
+    font-size: 13px;
+}
 .nova-tag {
     padding: 22px 26px;
     border-top: 8px solid var(--azul);

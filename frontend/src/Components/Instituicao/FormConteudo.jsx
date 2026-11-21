@@ -66,22 +66,25 @@ const FormConteudo = ({ modo = 'instituicao' }) => {
             return;
         }
 
-        api.get('/areas').then((resposta) => setAreas(resposta.data));
-
+        const carregarAreas = api.get('/areas').then((resposta) => resposta.data);
         const carregarTags = api.get('/tags').then((resposta) => resposta.data);
         if (!editando) {
+            carregarAreas.then(setAreas);
             carregarTags.then(setTags);
             return;
         }
 
         // Na edição, preenche o formulário com os dados atuais
-        Promise.all([carregarTags, api.get(`${rotaApi}/${id}`, cabecalhoAuth())])
-            .then(([listaTags, { data }]) => {
+        Promise.all([carregarTags, carregarAreas, api.get(`${rotaApi}/${id}`, cabecalhoAuth())])
+            .then(([listaTags, listaAreas, { data }]) => {
                 if (data.instituicao) setNomeInstituicao(data.instituicao.nome);
 
                 // Tags que o admin desativou continuam aparecendo, para não sumirem da edição
                 const desativadas = data.tags.filter((tag) => !listaTags.some((t) => t.id === tag.id));
-                setTags([...listaTags, ...desativadas.map((tag) => ({ ...tag, grupo: 'Tema' }))]);
+                setTags([...listaTags, ...desativadas.map((tag) => ({ ...tag, grupo: tag.grupo || 'Tema' }))]);
+                // O mesmo para as áreas desativadas
+                const areasDesativadas = data.areas.filter((area) => !listaAreas.some((a) => a.id === area.id));
+                setAreas([...listaAreas, ...areasDesativadas.map((area) => ({ id: area.id, nome: area.nome }))]);
 
                 setForm({
                     tipo: data.tipo,

@@ -149,8 +149,9 @@ async function main() {
         await prisma.area.upsert({ where: { nome }, update: {}, create: { nome } });
     }
 
-    // Tags
+    // Categorias e tags
     for (const [grupo, nomes] of Object.entries(tags)) {
+        await prisma.categoria.upsert({ where: { nome: grupo }, update: {}, create: { nome: grupo } });
         for (const nome of nomes) {
             await prisma.tag.upsert({ where: { nome }, update: {}, create: { nome, grupo } });
         }
